@@ -72,22 +72,288 @@ const App = () => {
     }
   };
 
+  const setTotal = (branchName) => {
+    if (
+      couValues[branchName].intermediateUse.st &&
+      couValues[branchName].finalUse.st
+    ) {
+      couValues[branchName].total =
+        _.toNumber(couValues[branchName].intermediateUse.st) +
+        _.toNumber(couValues[branchName].finalUse.st);
+    } else {
+      couValues[branchName].total = null;
+    }
+  };
+
   const handleCouValueChange = (value, cellKey) => {
     _.set(couValues, cellKey, value);
-    setIntermediateUseSt("firstBranch");
-    setIntermediateUseSt("secondBranch");
-    setIntermediateUseSt("thirdBranch");
-    setIntermediateUseSt("imports");
-    setIntermediateUseSt("totalUses");
-    setIntermediateUseSt("ra");
-    setIntermediateUseSt("eeb");
-    setIntermediateUseSt("vab");
-    setIntermediateUseSt("production");
-    setFinalUseSt("firstBranch");
-    setFinalUseSt("secondBranch");
-    setFinalUseSt("thirdBranch");
-    setFinalUseSt("imports");
-    setFinalUseSt("totalUses");
+
+    if (
+      cellKey === "firstBranch.intermediateUse.firstBranch" ||
+      cellKey === "firstBranch.intermediateUse.secondBranch" ||
+      cellKey === "firstBranch.intermediateUse.thirdBranch"
+    ) {
+      setIntermediateUseSt("firstBranch");
+      setTotal("firstBranch");
+    }
+
+    if (
+      cellKey === "secondBranch.intermediateUse.firstBranch" ||
+      cellKey === "secondBranch.intermediateUse.secondBranch" ||
+      cellKey === "secondBranch.intermediateUse.thirdBranch"
+    ) {
+      setIntermediateUseSt("secondBranch");
+      setTotal("secondBranch");
+    }
+
+    if (
+      cellKey === "thirdBranch.intermediateUse.firstBranch" ||
+      cellKey === "thirdBranch.intermediateUse.secondBranch" ||
+      cellKey === "thirdBranch.intermediateUse.thirdBranch"
+    ) {
+      setIntermediateUseSt("thirdBranch");
+      setTotal("thirdBranch");
+    }
+
+    if (
+      cellKey === "imports.intermediateUse.firstBranch" ||
+      cellKey === "imports.intermediateUse.secondBranch" ||
+      cellKey === "imports.intermediateUse.thirdBranch"
+    ) {
+      setIntermediateUseSt("imports");
+      setTotal("imports");
+    }
+
+    if (
+      cellKey === "totalUses.intermediateUse.firstBranch" ||
+      cellKey === "totalUses.intermediateUse.secondBranch" ||
+      cellKey === "totalUses.intermediateUse.thirdBranch"
+    ) {
+      setIntermediateUseSt("totalUses");
+      setTotal("totalUses");
+    }
+
+    if (
+      cellKey === "ra.intermediateUse.firstBranch" ||
+      cellKey === "ra.intermediateUse.secondBranch" ||
+      cellKey === "ra.intermediateUse.thirdBranch"
+    ) {
+      setIntermediateUseSt("ra");
+    }
+
+    if (
+      cellKey === "eeb.intermediateUse.firstBranch" ||
+      cellKey === "eeb.intermediateUse.secondBranch" ||
+      cellKey === "eeb.intermediateUse.thirdBranch"
+    ) {
+      setIntermediateUseSt("eeb");
+    }
+
+    if (
+      cellKey === "vab.intermediateUse.firstBranch" ||
+      cellKey === "vab.intermediateUse.secondBranch" ||
+      cellKey === "vab.intermediateUse.thirdBranch"
+    ) {
+      setIntermediateUseSt("vab");
+    }
+
+    if (
+      cellKey === "production.intermediateUse.firstBranch" ||
+      cellKey === "production.intermediateUse.secondBranch" ||
+      cellKey === "production.intermediateUse.thirdBranch"
+    ) {
+      setIntermediateUseSt("production");
+    }
+
+    if (
+      cellKey === "firstBranch.finalUse.gcf.homes" ||
+      cellKey === "firstBranch.finalUse.fbk.fbkf" ||
+      cellKey === "firstBranch.finalUse.fbk.ve" ||
+      cellKey === "firstBranch.finalUse.exports"
+    ) {
+      setFinalUseSt("firstBranch");
+      setTotal("firstBranch");
+    }
+
+    if (
+      cellKey === "secondBranch.finalUse.gcf.homes" ||
+      cellKey === "secondBranch.finalUse.fbk.fbkf" ||
+      cellKey === "secondBranch.finalUse.fbk.ve" ||
+      cellKey === "secondBranch.finalUse.exports"
+    ) {
+      setFinalUseSt("secondBranch");
+      setTotal("secondBranch");
+    }
+
+    if (
+      cellKey === "thirdBranch.finalUse.gcf.homes" ||
+      cellKey === "thirdBranch.finalUse.fbk.fbkf" ||
+      cellKey === "thirdBranch.finalUse.fbk.ve" ||
+      cellKey === "thirdBranch.finalUse.exports"
+    ) {
+      setFinalUseSt("thirdBranch");
+      setTotal("thirdBranch");
+    }
+
+    if (
+      cellKey === "imports.finalUse.gcf.homes" ||
+      cellKey === "imports.finalUse.fbk.fbkf" ||
+      cellKey === "imports.finalUse.fbk.ve" ||
+      cellKey === "imports.finalUse.exports"
+    ) {
+      setFinalUseSt("imports");
+      setTotal("imports");
+    }
+
+    if (
+      cellKey === "totalUses.finalUse.gcf.homes" ||
+      cellKey === "totalUses.finalUse.fbk.fbkf" ||
+      cellKey === "totalUses.finalUse.fbk.ve" ||
+      cellKey === "totalUses.finalUse.exports"
+    ) {
+      setFinalUseSt("totalUses");
+      setTotal("totalUses");
+    }
+
+    if (
+      cellKey === "firstBranch.intermediateUse.st" ||
+      cellKey === "firstBranch.finalUse.st"
+    ) {
+      setTotal("firstBranch");
+
+      if (cellKey === "firstBranch.intermediateUse.st") {
+        couValues.firstBranch.intermediateUse.firstBranch = null;
+        couValues.firstBranch.intermediateUse.secondBranch = null;
+        couValues.firstBranch.intermediateUse.thirdBranch = null;
+      } else {
+        couValues.firstBranch.finalUse.gcf.homes = null;
+        couValues.firstBranch.finalUse.fbk.fbkf = null;
+        couValues.firstBranch.finalUse.fbk.ve = null;
+        couValues.firstBranch.finalUse.exports = null;
+      }
+    }
+
+    if (
+      cellKey === "secondBranch.intermediateUse.st" ||
+      cellKey === "secondBranch.finalUse.st"
+    ) {
+      setTotal("secondBranch");
+
+      if (cellKey === "secondBranch.intermediateUse.st") {
+        couValues.secondBranch.intermediateUse.firstBranch = null;
+        couValues.secondBranch.intermediateUse.secondBranch = null;
+        couValues.secondBranch.intermediateUse.thirdBranch = null;
+      } else {
+        couValues.secondBranch.finalUse.gcf.homes = null;
+        couValues.secondBranch.finalUse.fbk.fbkf = null;
+        couValues.secondBranch.finalUse.fbk.ve = null;
+        couValues.secondBranch.finalUse.exports = null;
+      }
+    }
+
+    if (
+      cellKey === "thirdBranch.intermediateUse.st" ||
+      cellKey === "thirdBranch.finalUse.st"
+    ) {
+      setTotal("thirdBranch");
+
+      if (cellKey === "thirdBranch.intermediateUse.st") {
+        couValues.thirdBranch.intermediateUse.firstBranch = null;
+        couValues.thirdBranch.intermediateUse.secondBranch = null;
+        couValues.thirdBranch.intermediateUse.thirdBranch = null;
+      } else {
+        couValues.thirdBranch.finalUse.gcf.homes = null;
+        couValues.thirdBranch.finalUse.fbk.fbkf = null;
+        couValues.thirdBranch.finalUse.fbk.ve = null;
+        couValues.thirdBranch.finalUse.exports = null;
+      }
+    }
+
+    if (
+      cellKey === "imports.intermediateUse.st" ||
+      cellKey === "imports.finalUse.st"
+    ) {
+      setTotal("imports");
+
+      if (cellKey === "imports.intermediateUse.st") {
+        couValues.imports.intermediateUse.firstBranch = null;
+        couValues.imports.intermediateUse.secondBranch = null;
+        couValues.imports.intermediateUse.thirdBranch = null;
+      } else {
+        couValues.imports.finalUse.gcf.homes = null;
+        couValues.imports.finalUse.fbk.fbkf = null;
+        couValues.imports.finalUse.fbk.ve = null;
+        couValues.imports.finalUse.exports = null;
+      }
+    }
+
+    if (
+      cellKey === "totalUses.intermediateUse.st" ||
+      cellKey === "totalUses.finalUse.st"
+    ) {
+      setTotal("totalUses");
+
+      if (cellKey === "totalUses.intermediateUse.st") {
+        couValues.totalUses.intermediateUse.firstBranch = null;
+        couValues.totalUses.intermediateUse.secondBranch = null;
+        couValues.totalUses.intermediateUse.thirdBranch = null;
+      } else {
+        couValues.totalUses.finalUse.gcf.homes = null;
+        couValues.totalUses.finalUse.fbk.fbkf = null;
+        couValues.totalUses.finalUse.fbk.ve = null;
+        couValues.totalUses.finalUse.exports = null;
+      }
+    }
+
+    if (cellKey === "ra.intermediateUse.st") {
+      couValues.ra.intermediateUse.firstBranch = null;
+      couValues.ra.intermediateUse.secondBranch = null;
+      couValues.ra.intermediateUse.thirdBranch = null;
+    }
+
+    if (cellKey === "eeb.intermediateUse.st") {
+      couValues.eeb.intermediateUse.firstBranch = null;
+      couValues.eeb.intermediateUse.secondBranch = null;
+      couValues.eeb.intermediateUse.thirdBranch = null;
+    }
+
+    if (cellKey === "vab.intermediateUse.st") {
+      couValues.vab.intermediateUse.firstBranch = null;
+      couValues.vab.intermediateUse.secondBranch = null;
+      couValues.vab.intermediateUse.thirdBranch = null;
+    }
+
+    if (cellKey === "production.intermediateUse.st") {
+      couValues.production.intermediateUse.firstBranch = null;
+      couValues.production.intermediateUse.secondBranch = null;
+      couValues.production.intermediateUse.thirdBranch = null;
+    }
+
+    if (cellKey === "firstBranch.total") {
+      couValues.firstBranch.intermediateUse.st = null;
+      couValues.firstBranch.finalUse.st = null;
+    }
+
+    if (cellKey === "secondBranch.total") {
+      couValues.secondBranch.intermediateUse.st = null;
+      couValues.secondBranch.finalUse.st = null;
+    }
+
+    if (cellKey === "thirdBranch.total") {
+      couValues.thirdBranch.intermediateUse.st = null;
+      couValues.thirdBranch.finalUse.st = null;
+    }
+
+    if (cellKey === "imports.total") {
+      couValues.imports.intermediateUse.st = null;
+      couValues.imports.finalUse.st = null;
+    }
+
+    if (cellKey === "totalUses.total") {
+      couValues.totalUses.intermediateUse.st = null;
+      couValues.totalUses.finalUse.st = null;
+    }
+
     setCouValues(_.cloneDeep(couValues));
   };
 
@@ -169,10 +435,7 @@ const App = () => {
           type="number"
           value={couValues[rowKey].finalUse.fbk.fbkf ?? ""}
           onChange={(e) => {
-            handleCouValueChange(
-              e.target.value,
-              rowKey + ".finalUse.fbk.fbkf"
-            );
+            handleCouValueChange(e.target.value, rowKey + ".finalUse.fbk.fbkf");
           }}
         />
       </td>,
@@ -182,10 +445,7 @@ const App = () => {
           type="number"
           value={couValues[rowKey].finalUse.fbk.ve ?? ""}
           onChange={(e) => {
-            handleCouValueChange(
-              e.target.value,
-              rowKey + ".finalUse.fbk.ve"
-            );
+            handleCouValueChange(e.target.value, rowKey + ".finalUse.fbk.ve");
           }}
         />
       </td>,
@@ -195,10 +455,7 @@ const App = () => {
           type="number"
           value={couValues[rowKey].finalUse.exports ?? ""}
           onChange={(e) => {
-            handleCouValueChange(
-              e.target.value,
-              rowKey + ".finalUse.exports"
-            );
+            handleCouValueChange(e.target.value, rowKey + ".finalUse.exports");
           }}
         />
       </td>,
@@ -208,14 +465,37 @@ const App = () => {
           type="number"
           value={couValues[rowKey].finalUse.st ?? ""}
           onChange={(e) => {
-            handleCouValueChange(
-              e.target.value,
-              rowKey + ".finalUse.st"
-            );
+            handleCouValueChange(e.target.value, rowKey + ".finalUse.st");
+          }}
+        />
+      </td>,
+    ];
+  };
+
+  const DisabledCellsRow = () => {
+    return [
+      <td className="no-use"></td>,
+      <td className="no-use"></td>,
+      <td className="no-use"></td>,
+      <td className="no-use"></td>,
+      <td className="no-use"></td>,
+      <td className="no-use"></td>,
+    ];
+  };
+
+  const TotalCell = (rowKey) => {
+    return (
+      <td>
+        <input
+          className="invisible-input"
+          type="number"
+          value={couValues[rowKey].total ?? ""}
+          onChange={(e) => {
+            handleCouValueChange(e.target.value, rowKey + ".total");
           }}
         />
       </td>
-    ];
+    );
   };
 
   return (
@@ -284,10 +564,9 @@ const App = () => {
               </td>
               {IntermediateUseRow("firstBranch")}
               {FinalUseRow("firstBranch")}
-              <td>
-                <input className="invisible-input" type="number" />
-              </td>
+              {TotalCell("firstBranch")}
             </tr>
+
             {/* Second Branch Row */}
             <tr>
               <td>
@@ -300,10 +579,9 @@ const App = () => {
               </td>
               {IntermediateUseRow("secondBranch")}
               {FinalUseRow("secondBranch")}
-              <td>
-                <input className="invisible-input" type="number" />
-              </td>
+              {TotalCell("secondBranch")}
             </tr>
+
             {/* Third Branch Row */}
             <tr>
               <td>
@@ -316,10 +594,9 @@ const App = () => {
               </td>
               {IntermediateUseRow("thirdBranch")}
               {FinalUseRow("thirdBranch")}
-              <td>
-                <input className="invisible-input" type="number" />
-              </td>
+              {TotalCell("thirdBranch")}
             </tr>
+
             {/* Imports Row */}
             <tr>
               <td>
@@ -327,10 +604,9 @@ const App = () => {
               </td>
               {IntermediateUseRow("imports")}
               {FinalUseRow("imports")}
-              <td>
-                <input className="invisible-input" type="number" />
-              </td>
+              {TotalCell("imports")}
             </tr>
+
             {/* Total Uses Row */}
             <tr>
               <td>
@@ -338,61 +614,43 @@ const App = () => {
               </td>
               {IntermediateUseRow("totalUses")}
               {FinalUseRow("totalUses")}
-              <td>
-                <input className="invisible-input" type="number" />
-              </td>
+              {TotalCell("totalUses")}
             </tr>
+
             {/* RA Row */}
             <tr>
               <td>
                 <strong>RA</strong>
               </td>
               {IntermediateUseRow("ra")}
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
+              {DisabledCellsRow()}
             </tr>
+
             {/* EEB Row */}
             <tr>
               <td>
                 <strong>EEB (CKF + EEN)</strong>
               </td>
               {IntermediateUseRow("eeb")}
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
+              {DisabledCellsRow()}
             </tr>
+
             {/* VAB Row */}
             <tr>
               <td>
                 <strong>VAB</strong>
               </td>
               {IntermediateUseRow("vab")}
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
+              {DisabledCellsRow()}
             </tr>
+
             {/* Production Row */}
             <tr>
               <td>
                 <strong>Producción</strong>
               </td>
               {IntermediateUseRow("production")}
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
+              {DisabledCellsRow()}
             </tr>
           </tbody>
         </Table>
