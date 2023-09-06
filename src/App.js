@@ -9,11 +9,13 @@ const branchRow = {
     firstBranch: null,
     secondBranch: null,
     thirdBranch: null,
+    gov: null,
     st: null,
   },
   finalUse: {
     gcf: {
       homes: null,
+      gov: null,
     },
     fbk: {
       fbkf: null,
@@ -33,10 +35,12 @@ const App = () => {
     firstBranch: _.cloneDeep(branchRow),
     secondBranch: _.cloneDeep(branchRow),
     thirdBranch: _.cloneDeep(branchRow),
+    gov: _.cloneDeep(branchRow),
     imports: _.cloneDeep(branchRow),
     totalUses: _.cloneDeep(branchRow),
     ra: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
     ckf: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
+    tax: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
     een: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
     vab: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
     production: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
@@ -88,6 +92,23 @@ const App = () => {
           }}
         />
       </td>,
+      rowKey === "gov" || rowKey === "tax" || rowKey === "een" ? (
+        <td className="no-use"></td>
+      ) : (
+        <td>
+          <input
+            className="invisible-input"
+            type="number"
+            value={couValues[rowKey].intermediateUse.gov ?? ""}
+            onChange={(e) => {
+              handleCouValueChange(
+                e.target.value,
+                rowKey + ".intermediateUse.gov"
+              );
+            }}
+          />
+        </td>
+      ),
       <td>
         <input
           className="invisible-input"
@@ -119,6 +140,23 @@ const App = () => {
           }}
         />
       </td>,
+      rowKey === "gov" || rowKey === "totalUses" ? (
+        <td>
+          <input
+            className="invisible-input"
+            type="number"
+            value={couValues[rowKey].finalUse.gcf.gov ?? ""}
+            onChange={(e) => {
+              handleCouValueChange(
+                e.target.value,
+                rowKey + ".finalUse.gcf.gov"
+              );
+            }}
+          />
+        </td>
+      ) : (
+        <td className="no-use"></td>
+      ),
       <td>
         <input
           className="invisible-input"
@@ -170,6 +208,7 @@ const App = () => {
       <td className="no-use"></td>,
       <td className="no-use"></td>,
       <td className="no-use"></td>,
+      <td className="no-use"></td>,
     ];
   };
 
@@ -194,12 +233,14 @@ const App = () => {
     if (
       couValues[rowKey].intermediateUse.firstBranch &&
       couValues[rowKey].intermediateUse.secondBranch &&
-      couValues[rowKey].intermediateUse.thirdBranch
+      couValues[rowKey].intermediateUse.thirdBranch &&
+      couValues[rowKey].intermediateUse.gov
     ) {
       const val = _.toString(
         _.toNumber(couValues[rowKey].intermediateUse.firstBranch) +
           _.toNumber(couValues[rowKey].intermediateUse.secondBranch) +
-          _.toNumber(couValues[rowKey].intermediateUse.thirdBranch)
+          _.toNumber(couValues[rowKey].intermediateUse.thirdBranch) +
+          _.toNumber(couValues[rowKey].intermediateUse.gov)
       );
 
       shouldCompute = val !== couValues[rowKey].intermediateUse.st;
@@ -210,7 +251,7 @@ const App = () => {
     return shouldCompute;
   };
 
-  const computeTotalUse = (columnKey) => {
+  const computeIntermediateTotalUse = (columnKey) => {
     let shouldCompute = false;
 
     if (
@@ -272,11 +313,100 @@ const App = () => {
     }
   };
 
+  const computeFinalUseSt = (rowKey) => {
+    let shouldCompute = false;
+
+    if (rowKey === "gov") {
+      if (couValues[rowKey].finalUse.gcf.gov) {
+        const val = _.toString(_.toNumber(couValues[rowKey].finalUse.gcf.gov));
+
+        shouldCompute = val !== couValues[rowKey].finalUse.st;
+
+        if (shouldCompute) couValues[rowKey].finalUse.st = val;
+      }
+    } else if (
+      couValues[rowKey].finalUse.gcf.homes &&
+      couValues[rowKey].finalUse.fbk.fbkf &&
+      couValues[rowKey].finalUse.fbk.ve &&
+      couValues[rowKey].finalUse.exports
+    ) {
+      const val = _.toString(
+        _.toNumber(couValues[rowKey].finalUse.gcf.homes) +
+          _.toNumber(couValues[rowKey].finalUse.fbk.fbkf) +
+          _.toNumber(couValues[rowKey].finalUse.fbk.ve) +
+          _.toNumber(couValues[rowKey].finalUse.exports)
+      );
+
+      shouldCompute = val !== couValues[rowKey].finalUse.st;
+
+      if (shouldCompute) couValues[rowKey].finalUse.st = val;
+    }
+
+    return shouldCompute;
+  };
+
+  const computeFinalTotalUse = (columnKey) => {
+    let shouldCompute = false;
+
+    if (columnKey === "gcf.gov") {
+      if (_.get(couValues.gov.finalUse, columnKey)) {
+        const val = _.toString(
+          _.toNumber(_.get(couValues.gov.finalUse, columnKey))
+        );
+
+        shouldCompute = val !== _.get(couValues.totalUses.finalUse, columnKey);
+
+        if (shouldCompute) _.set(couValues.totalUses.finalUse, columnKey, val);
+      }
+    } else if (
+      _.get(couValues.firstBranch.finalUse, columnKey) &&
+      _.get(couValues.secondBranch.finalUse, columnKey) &&
+      _.get(couValues.thirdBranch.finalUse, columnKey) &&
+      _.get(couValues.imports.finalUse, columnKey)
+    ) {
+      const val = _.toString(
+        _.toNumber(_.get(couValues.firstBranch.finalUse, columnKey)) +
+          _.toNumber(_.get(couValues.secondBranch.finalUse, columnKey)) +
+          _.toNumber(_.get(couValues.thirdBranch.finalUse, columnKey)) +
+          _.toNumber(_.get(couValues.imports.finalUse, columnKey))
+      );
+
+      shouldCompute = val !== _.get(couValues.totalUses.finalUse, columnKey);
+
+      if (shouldCompute) _.set(couValues.totalUses.finalUse, columnKey, val);
+    }
+
+    return shouldCompute;
+  };
+
+  const computeTotal = (rowKey) => {
+    let shouldCompute = false;
+
+    if (
+      (couValues[rowKey].intermediateUse.st || rowKey === "gov") &&
+      couValues[rowKey].finalUse.st
+    ) {
+      const val = _.toString(
+        (rowKey === "gov"
+          ? 0
+          : _.toNumber(couValues[rowKey].intermediateUse.st)) +
+          _.toNumber(couValues[rowKey].finalUse.st)
+      );
+
+      shouldCompute = val !== couValues[rowKey].total;
+
+      if (shouldCompute) couValues[rowKey].total = val;
+    }
+
+    return shouldCompute;
+  };
+
   const compute = () => {
     let shouldCompute = true;
 
     while (shouldCompute) {
       shouldCompute =
+        // Intermediate Use ST
         computeIntermediateUseSt("firstBranch") ||
         computeIntermediateUseSt("secondBranch") ||
         computeIntermediateUseSt("thirdBranch") ||
@@ -287,18 +417,45 @@ const App = () => {
         computeIntermediateUseSt("een") ||
         computeIntermediateUseSt("vab") ||
         computeIntermediateUseSt("production") ||
-        computeTotalUse("firstBranch") ||
-        computeTotalUse("secondBranch") ||
-        computeTotalUse("thirdBranch") ||
-        computeTotalUse("st") ||
+        // Intermediate Use Total Use
+        computeIntermediateTotalUse("firstBranch") ||
+        computeIntermediateTotalUse("secondBranch") ||
+        computeIntermediateTotalUse("thirdBranch") ||
+        computeIntermediateTotalUse("gov") ||
+        computeIntermediateTotalUse("st") ||
+        // VAB
         computeVab("firstBranch") ||
         computeVab("secondBranch") ||
         computeVab("thirdBranch") ||
+        computeVab("gov") ||
         computeVab("st") ||
+        // Production
         computeProduction("firstBranch") ||
         computeProduction("secondBranch") ||
         computeProduction("thirdBranch") ||
-        computeProduction("st");
+        computeProduction("gov") ||
+        computeProduction("st") ||
+        // Final Use ST
+        computeFinalUseSt("firstBranch") ||
+        computeFinalUseSt("secondBranch") ||
+        computeFinalUseSt("thirdBranch") ||
+        computeFinalUseSt("gov") ||
+        computeFinalUseSt("imports") ||
+        computeFinalUseSt("totalUses") ||
+        // Final Use Total Use
+        computeFinalTotalUse("gcf.homes") ||
+        computeFinalTotalUse("gcf.gov") ||
+        computeFinalTotalUse("fbk.fbkf") ||
+        computeFinalTotalUse("fbk.ve") ||
+        computeFinalTotalUse("exports") ||
+        computeFinalTotalUse("st") ||
+        // Total
+        computeTotal("firstBranch") ||
+        computeTotal("secondBranch") ||
+        computeTotal("thirdBranch") ||
+        computeTotal("gov") ||
+        computeTotal("imports") ||
+        computeTotal("totalUses");
     }
 
     setCouValues(_.cloneDeep(couValues));
@@ -317,14 +474,14 @@ const App = () => {
           <thead>
             <tr>
               <th rowSpan={3}></th>
-              <th colSpan={4} rowSpan={2}>
+              <th colSpan={5} rowSpan={2}>
                 UTILIZACION INTERMEDIA
               </th>
-              <th colSpan={5}>UTILIZACION FINAL</th>
+              <th colSpan={6}>UTILIZACION FINAL</th>
               <th rowSpan={3}>Total</th>
             </tr>
             <tr>
-              <th>GCF</th>
+              <th colSpan={2}>GCF</th>
               <th colSpan={2}>FBK</th>
               <th rowSpan={2}>Exportaciones</th>
               <th rowSpan={2}>ST</th>
@@ -354,8 +511,10 @@ const App = () => {
                   onChange={(e) => setThirdBranchName(e.target.value)}
                 />
               </th>
+              <th>Serv. Gob</th>
               <th>ST</th>
               <th>Hogares</th>
+              <th>Gob.</th>
               <th>FBKF</th>
               <th>VE</th>
             </tr>
@@ -406,6 +565,55 @@ const App = () => {
               {TotalCell("thirdBranch")}
             </tr>
 
+            {/* Serv. Gob */}
+            <tr>
+              <td>
+                <strong>Serv. Gob.</strong>
+              </td>
+              <td className="no-use"></td>
+              <td className="no-use"></td>
+              <td className="no-use"></td>
+              <td className="no-use"></td>
+              <td className="no-use"></td>
+              <td className="no-use"></td>
+              <td>
+                <input
+                  className="invisible-input"
+                  type="number"
+                  value={couValues.gov.finalUse.gcf.gov ?? ""}
+                  onChange={(e) => {
+                    handleCouValueChange(
+                      e.target.value,
+                      "gov.finalUse.gcf.gov"
+                    );
+                  }}
+                />
+              </td>
+              <td className="no-use"></td>
+              <td className="no-use"></td>
+              <td className="no-use"></td>
+              <td>
+                <input
+                  className="invisible-input"
+                  type="number"
+                  value={couValues.gov.finalUse.st ?? ""}
+                  onChange={(e) => {
+                    handleCouValueChange(e.target.value, "gov.finalUse.st");
+                  }}
+                />
+              </td>
+              <td>
+                <input
+                  className="invisible-input"
+                  type="number"
+                  value={couValues.gov.total ?? ""}
+                  onChange={(e) => {
+                    handleCouValueChange(e.target.value, "gov.total");
+                  }}
+                />
+              </td>
+            </tr>
+
             {/* Imports Row */}
             <tr>
               <td>
@@ -441,6 +649,15 @@ const App = () => {
                 <strong>CKF</strong>
               </td>
               {IntermediateUseRow("ckf")}
+              {DisabledCellsRow()}
+            </tr>
+
+            {/* Imp-S Row */}
+            <tr>
+              <td>
+                <strong>Imp-S</strong>
+              </td>
+              {IntermediateUseRow("tax")}
               {DisabledCellsRow()}
             </tr>
 
