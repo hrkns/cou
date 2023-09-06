@@ -230,6 +230,7 @@ const App = () => {
   const computeIntermediateUseSt = (rowKey) => {
     let shouldCompute = false;
 
+    // compute from intermediate cells
     if (
       couValues[rowKey].intermediateUse.firstBranch &&
       couValues[rowKey].intermediateUse.secondBranch &&
@@ -247,6 +248,8 @@ const App = () => {
 
       if (shouldCompute) couValues[rowKey].intermediateUse.st = val;
     }
+    // TODO: compute from st column values
+    // TODO: compute from the other st and the total
 
     return shouldCompute;
   };
@@ -271,6 +274,8 @@ const App = () => {
 
       if (shouldCompute) couValues.totalUses.intermediateUse[columnKey] = val;
     }
+    // TODO: compute using VAB and Production
+    // TODO: compute using other total uses and the corresponding ST
 
     return shouldCompute;
   };
@@ -293,6 +298,10 @@ const App = () => {
 
       if (shouldCompute) couValues.vab.intermediateUse[columnKey] = val;
     }
+    // TODO: compute using corresponding total use and production
+    // TODO: compute using other VAB and the corresponding ST
+
+    return shouldCompute;
   };
 
   const computeProduction = (columnKey) => {
@@ -311,6 +320,10 @@ const App = () => {
 
       if (shouldCompute) couValues.production.intermediateUse[columnKey] = val;
     }
+    // TODO: compute copying values from total column
+    // TODO: compute using other production and the corresponding ST
+
+    return shouldCompute
   };
 
   const computeFinalUseSt = (rowKey) => {
@@ -341,6 +354,9 @@ const App = () => {
 
       if (shouldCompute) couValues[rowKey].finalUse.st = val;
     }
+
+    // TODO: compute from st column values
+    // TODO: compute from the other st and the total
 
     return shouldCompute;
   };
@@ -376,6 +392,8 @@ const App = () => {
       if (shouldCompute) _.set(couValues.totalUses.finalUse, columnKey, val);
     }
 
+    // TODO: compute using other total uses and the corresponding ST
+
     return shouldCompute;
   };
 
@@ -397,6 +415,9 @@ const App = () => {
 
       if (shouldCompute) couValues[rowKey].total = val;
     }
+
+    // TODO: compute copying values from Production row
+    // TODO: compute using other totals
 
     return shouldCompute;
   };
