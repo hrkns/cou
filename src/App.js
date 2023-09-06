@@ -129,10 +129,7 @@ const App = () => {
           type="number"
           value={couValues[rowKey].finalUse.gcfHomes ?? ""}
           onChange={(e) => {
-            handleCouValueChange(
-              e.target.value,
-              rowKey + ".finalUse.gcfHomes"
-            );
+            handleCouValueChange(e.target.value, rowKey + ".finalUse.gcfHomes");
           }}
         />
       </td>,
@@ -143,10 +140,7 @@ const App = () => {
             type="number"
             value={couValues[rowKey].finalUse.gcfGov ?? ""}
             onChange={(e) => {
-              handleCouValueChange(
-                e.target.value,
-                rowKey + ".finalUse.gcfGov"
-              );
+              handleCouValueChange(e.target.value, rowKey + ".finalUse.gcfGov");
             }}
           />
         </td>
@@ -319,7 +313,7 @@ const App = () => {
     // TODO: compute copying values from total column
     // TODO: compute using other production and the corresponding ST
 
-    return shouldCompute
+    return shouldCompute;
   };
 
   const computeFinalUseSt = (rowKey) => {
@@ -599,10 +593,7 @@ const App = () => {
                   type="number"
                   value={couValues.gov.finalUse.gcfGov ?? ""}
                   onChange={(e) => {
-                    handleCouValueChange(
-                      e.target.value,
-                      "gov.finalUse.gcfGov"
-                    );
+                    handleCouValueChange(e.target.value, "gov.finalUse.gcfGov");
                   }}
                 />
               </td>
