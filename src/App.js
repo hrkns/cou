@@ -13,14 +13,10 @@ const branchRow = {
     st: null,
   },
   finalUse: {
-    gcf: {
-      homes: null,
-      gov: null,
-    },
-    fbk: {
-      fbkf: null,
-      ve: null,
-    },
+    gcfHomes: null,
+    gcfGov: null,
+    fbkFbkf: null,
+    fbkVe: null,
     exports: null,
     st: null,
   },
@@ -131,11 +127,11 @@ const App = () => {
         <input
           className="invisible-input"
           type="number"
-          value={couValues[rowKey].finalUse.gcf.homes ?? ""}
+          value={couValues[rowKey].finalUse.gcfHomes ?? ""}
           onChange={(e) => {
             handleCouValueChange(
               e.target.value,
-              rowKey + ".finalUse.gcf.homes"
+              rowKey + ".finalUse.gcfHomes"
             );
           }}
         />
@@ -145,11 +141,11 @@ const App = () => {
           <input
             className="invisible-input"
             type="number"
-            value={couValues[rowKey].finalUse.gcf.gov ?? ""}
+            value={couValues[rowKey].finalUse.gcfGov ?? ""}
             onChange={(e) => {
               handleCouValueChange(
                 e.target.value,
-                rowKey + ".finalUse.gcf.gov"
+                rowKey + ".finalUse.gcfGov"
               );
             }}
           />
@@ -161,9 +157,9 @@ const App = () => {
         <input
           className="invisible-input"
           type="number"
-          value={couValues[rowKey].finalUse.fbk.fbkf ?? ""}
+          value={couValues[rowKey].finalUse.fbkFbkf ?? ""}
           onChange={(e) => {
-            handleCouValueChange(e.target.value, rowKey + ".finalUse.fbk.fbkf");
+            handleCouValueChange(e.target.value, rowKey + ".finalUse.fbkFbkf");
           }}
         />
       </td>,
@@ -171,9 +167,9 @@ const App = () => {
         <input
           className="invisible-input"
           type="number"
-          value={couValues[rowKey].finalUse.fbk.ve ?? ""}
+          value={couValues[rowKey].finalUse.fbkVe ?? ""}
           onChange={(e) => {
-            handleCouValueChange(e.target.value, rowKey + ".finalUse.fbk.ve");
+            handleCouValueChange(e.target.value, rowKey + ".finalUse.fbkVe");
           }}
         />
       </td>,
@@ -330,23 +326,23 @@ const App = () => {
     let shouldCompute = false;
 
     if (rowKey === "gov") {
-      if (couValues[rowKey].finalUse.gcf.gov) {
-        const val = _.toString(_.toNumber(couValues[rowKey].finalUse.gcf.gov));
+      if (couValues[rowKey].finalUse.gcfGov) {
+        const val = _.toString(_.toNumber(couValues[rowKey].finalUse.gcfGov));
 
         shouldCompute = val !== couValues[rowKey].finalUse.st;
 
         if (shouldCompute) couValues[rowKey].finalUse.st = val;
       }
     } else if (
-      couValues[rowKey].finalUse.gcf.homes &&
-      couValues[rowKey].finalUse.fbk.fbkf &&
-      couValues[rowKey].finalUse.fbk.ve &&
+      couValues[rowKey].finalUse.gcfHomes &&
+      couValues[rowKey].finalUse.fbkFbkf &&
+      couValues[rowKey].finalUse.fbkVe &&
       couValues[rowKey].finalUse.exports
     ) {
       const val = _.toString(
-        _.toNumber(couValues[rowKey].finalUse.gcf.homes) +
-          _.toNumber(couValues[rowKey].finalUse.fbk.fbkf) +
-          _.toNumber(couValues[rowKey].finalUse.fbk.ve) +
+        _.toNumber(couValues[rowKey].finalUse.gcfHomes) +
+          _.toNumber(couValues[rowKey].finalUse.fbkFbkf) +
+          _.toNumber(couValues[rowKey].finalUse.fbkVe) +
           _.toNumber(couValues[rowKey].finalUse.exports)
       );
 
@@ -364,7 +360,7 @@ const App = () => {
   const computeFinalTotalUse = (columnKey) => {
     let shouldCompute = false;
 
-    if (columnKey === "gcf.gov") {
+    if (columnKey === "gcfGov") {
       if (_.get(couValues.gov.finalUse, columnKey)) {
         const val = _.toString(
           _.toNumber(_.get(couValues.gov.finalUse, columnKey))
@@ -464,10 +460,10 @@ const App = () => {
         computeFinalUseSt("imports") ||
         computeFinalUseSt("totalUses") ||
         // Final Use Total Use
-        computeFinalTotalUse("gcf.homes") ||
-        computeFinalTotalUse("gcf.gov") ||
-        computeFinalTotalUse("fbk.fbkf") ||
-        computeFinalTotalUse("fbk.ve") ||
+        computeFinalTotalUse("gcfHomes") ||
+        computeFinalTotalUse("gcfGov") ||
+        computeFinalTotalUse("fbkFbkf") ||
+        computeFinalTotalUse("fbkVe") ||
         computeFinalTotalUse("exports") ||
         computeFinalTotalUse("st") ||
         // Total
@@ -601,11 +597,11 @@ const App = () => {
                 <input
                   className="invisible-input"
                   type="number"
-                  value={couValues.gov.finalUse.gcf.gov ?? ""}
+                  value={couValues.gov.finalUse.gcfGov ?? ""}
                   onChange={(e) => {
                     handleCouValueChange(
                       e.target.value,
-                      "gov.finalUse.gcf.gov"
+                      "gov.finalUse.gcfGov"
                     );
                   }}
                 />
