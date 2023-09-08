@@ -259,37 +259,70 @@ const App = () => {
           _.toNumber(couValues[rowKey].intermediateUse.thirdBranch) +
           _.toNumber(couValues[rowKey].intermediateUse.gov)
       );
-    }
-    // TODO: compute from st column values
-    else if (!couValues[rowKey].intermediateUse.st) {
-      const eqFactors = {
+    } else if (!couValues[rowKey].intermediateUse.st) {
+      // try to compute from other column st values
+      const colEquationFactors = {
         firstBranch: couValues.firstBranch.intermediateUse.st,
         secondBranch: couValues.secondBranch.intermediateUse.st,
         thirdBranch: couValues.thirdBranch.intermediateUse.st,
         imports: couValues.imports.intermediateUse.st,
         totalUses: couValues.totalUses.intermediateUse.st,
       };
-      const noValueProps = nilEmptyProps(eqFactors);
+      const noValueProps = nilEmptyProps(colEquationFactors);
+      // if it's detected that the only missing value from the column ones is the current row then we solve the equation
       if (noValueProps.length === 1 && noValueProps[0] === rowKey) {
+        // build equation expression
         const leftSide =
-          (noValueProps[0] === "firstBranch" ? "x" : eqFactors.firstBranch) +
+          (noValueProps[0] === "firstBranch"
+            ? "x"
+            : colEquationFactors.firstBranch) +
           " + " +
-          (noValueProps[0] === "secondBranch" ? "x" : eqFactors.secondBranch) +
+          (noValueProps[0] === "secondBranch"
+            ? "x"
+            : colEquationFactors.secondBranch) +
           " + " +
-          (noValueProps[0] === "thirdBranch" ? "x" : eqFactors.thirdBranch) +
+          (noValueProps[0] === "thirdBranch"
+            ? "x"
+            : colEquationFactors.thirdBranch) +
           " + " +
-          (noValueProps[0] === "imports" ? "x" : eqFactors.imports);
+          (noValueProps[0] === "imports" ? "x" : colEquationFactors.imports);
         const rightSide =
-          noValueProps[0] === "totalUses" ? "x" : eqFactors.totalUses;
+          noValueProps[0] === "totalUses" ? "x" : colEquationFactors.totalUses;
+        // compute
         const expresion = new algebra.Equation(
           algebra.parse(leftSide),
           algebra.parse(rightSide)
         );
         const solucion = expresion.solveFor("x");
         val = solucion.numer / solucion.denom;
+      } else if (
+        [
+          "firstBranch",
+          "secondBranch",
+          "thirdBranch",
+          "imports",
+          "totalUses",
+        ].includes(rowKey)
+      ) {
+        // compute from the other st and the total
+        const stAndTotalEquationFactors = {
+          st1: couValues[rowKey].intermediateUse.st,
+          st2: couValues[rowKey].finalUse.st,
+          total: couValues[rowKey].total,
+        };
+        const noValueProps = nilEmptyProps(stAndTotalEquationFactors);
+        if (noValueProps.length === 1 && noValueProps[0] === "st1") {
+          const leftSide = "x + " + stAndTotalEquationFactors.st2;
+          const rightSide = stAndTotalEquationFactors.total;
+          const expresion = new algebra.Equation(
+            algebra.parse(leftSide),
+            algebra.parse(rightSide)
+          );
+          const solucion = expresion.solveFor("x");
+          val = solucion.numer / solucion.denom;
+        }
       }
     }
-    // TODO: compute from the other st and the total
 
     if (val) {
       shouldCompute = val !== couValues[rowKey].intermediateUse.st;
