@@ -271,13 +271,17 @@ const App = () => {
       couValues[rowKey].intermediateUse.firstBranch &&
       couValues[rowKey].intermediateUse.secondBranch &&
       couValues[rowKey].intermediateUse.thirdBranch &&
-      couValues[rowKey].intermediateUse.gov
+      (couValues[rowKey].intermediateUse.gov ||
+        rowKey === "tax" ||
+        rowKey === "een")
     ) {
       val = _.toString(
         _.toNumber(couValues[rowKey].intermediateUse.firstBranch) +
           _.toNumber(couValues[rowKey].intermediateUse.secondBranch) +
           _.toNumber(couValues[rowKey].intermediateUse.thirdBranch) +
-          _.toNumber(couValues[rowKey].intermediateUse.gov)
+          (rowKey === "tax" || rowKey === "een"
+            ? 0
+            : _.toNumber(couValues[rowKey].intermediateUse.gov))
       );
     }
 
@@ -686,20 +690,20 @@ const App = () => {
     let val = null;
 
     if (columnKey === "gcfGov") {
-      if (couValues.gov.finalUse.columnKey) {
-        val = _.toString(_.toNumber(couValues.gov.finalUse.columnKey));
+      if (couValues.gov.finalUse[columnKey]) {
+        val = _.toString(_.toNumber(couValues.gov.finalUse[columnKey]));
       }
     } else if (
-      couValues.firstBranch.finalUse.columnKey &&
-      couValues.secondBranch.finalUse.columnKey &&
-      couValues.thirdBranch.finalUse.columnKey &&
-      couValues.imports.finalUse.columnKey
+      couValues.firstBranch.finalUse[columnKey] &&
+      couValues.secondBranch.finalUse[columnKey] &&
+      couValues.thirdBranch.finalUse[columnKey] &&
+      couValues.imports.finalUse[columnKey]
     ) {
       val = _.toString(
-        _.toNumber(couValues.firstBranch.finalUse.columnKey) +
-          _.toNumber(couValues.secondBranch.finalUse.columnKey) +
-          _.toNumber(couValues.thirdBranch.finalUse.columnKey) +
-          _.toNumber(couValues.imports.finalUse.columnKey)
+        _.toNumber(couValues.firstBranch.finalUse[columnKey]) +
+          _.toNumber(couValues.secondBranch.finalUse[columnKey]) +
+          _.toNumber(couValues.thirdBranch.finalUse[columnKey]) +
+          _.toNumber(couValues.imports.finalUse[columnKey])
       );
     }
 
@@ -821,7 +825,7 @@ const App = () => {
     return shouldCompute(val, rowKey + ".total");
   };
 
-  const generateTopHalfInnerCellsEquations = (rowPrefix) => {
+  const generateTopHalfInnerCellsEquationsForRowCalculation = (rowPrefix) => {
     let equations = {
       [rowPrefix + ".intermediateUse.firstBranch"]: [
         "x",
@@ -995,7 +999,9 @@ const App = () => {
     return equations;
   };
 
-  const generateBottomHalfInnerCellsEquations = (rowPrefix) => {
+  const generateBottomHalfInnerCellsEquationsForRowCalculation = (
+    rowPrefix
+  ) => {
     let equations = {};
 
     if (rowPrefix === "ra" || rowPrefix === "ckf") {
@@ -1080,7 +1086,137 @@ const App = () => {
     return equations;
   };
 
-  const processEquations = (equations, print) => {
+  const generateTopHalfInnerCellsEquationsForColumnCalculation = (
+    columnSuffix
+  ) => {
+    const topSide = [
+      "firstBranch",
+      "secondBranch",
+      "thirdBranch",
+      "gov",
+    ].includes(columnSuffix)
+      ? "intermediateUse"
+      : "finalUse";
+
+    return {
+      ["firstBranch." + topSide + "." + columnSuffix]: [
+        "x",
+        "+",
+        "secondBranch." + topSide + "." + columnSuffix,
+        "+",
+        "thirdBranch." + topSide + "." + columnSuffix,
+        "+",
+        "imports." + topSide + "." + columnSuffix,
+        "=",
+        "totalUses." + topSide + "." + columnSuffix,
+      ],
+      ["secondBranch." + topSide + "." + columnSuffix]: [
+        "firstBranch." + topSide + "." + columnSuffix,
+        "+",
+        "x",
+        "+",
+        "thirdBranch." + topSide + "." + columnSuffix,
+        "+",
+        "imports." + topSide + "." + columnSuffix,
+        "=",
+        "totalUses." + topSide + "." + columnSuffix,
+      ],
+      ["thirdBranch." + topSide + "." + columnSuffix]: [
+        "firstBranch." + topSide + "." + columnSuffix,
+        "+",
+        "secondBranch." + topSide + "." + columnSuffix,
+        "+",
+        "x",
+        "+",
+        "imports." + topSide + "." + columnSuffix,
+        "=",
+        "totalUses." + topSide + "." + columnSuffix,
+      ],
+      ["imports." + topSide + "." + columnSuffix]: [
+        "firstBranch." + topSide + "." + columnSuffix,
+        "+",
+        "secondBranch." + topSide + "." + columnSuffix,
+        "+",
+        "thirdBranch." + topSide + "." + columnSuffix,
+        "+",
+        "x",
+        "=",
+        "totalUses." + topSide + "." + columnSuffix,
+      ],
+    };
+  };
+
+  const generateBottomHalfInnerCellsEquationsForColumnCalculation = (
+    columnSuffix
+  ) => {
+    if (columnSuffix === "gov") {
+      return {
+        ["ra.intermediateUse." + columnSuffix]: [
+          "x",
+          "+",
+          "ckf.intermediateUse." + columnSuffix,
+          "=",
+          "vab.intermediateUse." + columnSuffix,
+        ],
+        ["ckf.intermediateUse." + columnSuffix]: [
+          "ra.intermediateUse." + columnSuffix,
+          "+",
+          "x",
+          "=",
+          "vab.intermediateUse." + columnSuffix,
+        ],
+      };
+    } else {
+      return {
+        ["ra.intermediateUse." + columnSuffix]: [
+          "x",
+          "+",
+          "ckf.intermediateUse." + columnSuffix,
+          "+",
+          "tax.intermediateUse." + columnSuffix,
+          "+",
+          "een.intermediateUse." + columnSuffix,
+          "=",
+          "vab.intermediateUse." + columnSuffix,
+        ],
+        ["ckf.intermediateUse." + columnSuffix]: [
+          "ra.intermediateUse." + columnSuffix,
+          "+",
+          "x",
+          "+",
+          "tax.intermediateUse." + columnSuffix,
+          "+",
+          "een.intermediateUse." + columnSuffix,
+          "=",
+          "vab.intermediateUse." + columnSuffix,
+        ],
+        ["tax.intermediateUse." + columnSuffix]: [
+          "ra.intermediateUse." + columnSuffix,
+          "+",
+          "ckf.intermediateUse." + columnSuffix,
+          "+",
+          "x",
+          "+",
+          "een.intermediateUse." + columnSuffix,
+          "=",
+          "vab.intermediateUse." + columnSuffix,
+        ],
+        ["een.intermediateUse." + columnSuffix]: [
+          "ra.intermediateUse." + columnSuffix,
+          "+",
+          "ckf.intermediateUse." + columnSuffix,
+          "+",
+          "tax.intermediateUse." + columnSuffix,
+          "+",
+          "x",
+          "=",
+          "vab.intermediateUse." + columnSuffix,
+        ],
+      };
+    }
+  };
+
+  const processEquations = (equations) => {
     let hasComputed = false;
 
     Object.keys(equations).forEach((targetCell) => {
@@ -1144,18 +1280,45 @@ const App = () => {
   };
 
   const computeInnerCells = () => {
-    let hasComputed = false;
+    let hasComputed = processEquations({
+      ...generateTopHalfInnerCellsEquationsForRowCalculation("firstBranch"),
+      ...generateTopHalfInnerCellsEquationsForRowCalculation("secondBranch"),
+      ...generateTopHalfInnerCellsEquationsForRowCalculation("thirdBranch"),
+      ...generateTopHalfInnerCellsEquationsForRowCalculation("imports"),
+      ...generateTopHalfInnerCellsEquationsForRowCalculation("totalUses"),
+      ...generateBottomHalfInnerCellsEquationsForRowCalculation("ra"),
+      ...generateBottomHalfInnerCellsEquationsForRowCalculation("ckf"),
+      ...generateBottomHalfInnerCellsEquationsForRowCalculation("tax"),
+      ...generateBottomHalfInnerCellsEquationsForRowCalculation("een"),
+    });
 
-    // compute inner cells of top half of the cou (both intermediate and final uses) using row values
-    let equations = {
-      ...generateTopHalfInnerCellsEquations("firstBranch"),
-      ...generateTopHalfInnerCellsEquations("secondBranch"),
-      ...generateTopHalfInnerCellsEquations("thirdBranch"),
-      ...generateTopHalfInnerCellsEquations("imports"),
-      ...generateTopHalfInnerCellsEquations("totalUses"),
-    };
-
-    hasComputed = processEquations(equations);
+    hasComputed =
+      processEquations({
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation(
+          "firstBranch"
+        ),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation(
+          "secondBranch"
+        ),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation(
+          "thirdBranch"
+        ),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation("gov"),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation("gcfHomes"),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation("fbkFbkf"),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation("fbkVe"),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation("exports"),
+        ...generateBottomHalfInnerCellsEquationsForColumnCalculation(
+          "firstBranch"
+        ),
+        ...generateBottomHalfInnerCellsEquationsForColumnCalculation(
+          "secondBranch"
+        ),
+        ...generateBottomHalfInnerCellsEquationsForColumnCalculation(
+          "thirdBranch"
+        ),
+        ...generateBottomHalfInnerCellsEquationsForColumnCalculation("gov"),
+      }) || hasComputed;
 
     // assign value gcf of government if required
     if (
@@ -1171,16 +1334,6 @@ const App = () => {
           : couValues.gov.finalUse.st;
       hasComputed = shouldCompute(val, "gov.finalUse.gcfGov");
     }
-
-    // compute inner cells of bottom half of the cou using row values
-    equations = {
-      ...generateBottomHalfInnerCellsEquations("ra"),
-      ...generateBottomHalfInnerCellsEquations("ckf"),
-      ...generateBottomHalfInnerCellsEquations("tax"),
-      ...generateBottomHalfInnerCellsEquations("een"),
-    };
-
-    hasComputed = processEquations(equations, true) || hasComputed;
 
     return hasComputed;
   };
@@ -1203,6 +1356,7 @@ const App = () => {
         computeIntermediateUseSt("totalUses") ||
         computeIntermediateUseSt("ra") ||
         computeIntermediateUseSt("ckf") ||
+        computeIntermediateUseSt("tax") ||
         computeIntermediateUseSt("een") ||
         computeIntermediateUseSt("vab") ||
         computeIntermediateUseSt("production") ||
