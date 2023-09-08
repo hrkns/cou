@@ -27,7 +27,7 @@ const App = () => {
   const [firstBranchName, setFirstBranchName] = useState("Rama 1");
   const [secondBranchName, setSecondBranchName] = useState("Rama 2");
   const [thirdBranchName, setThirdBranchName] = useState("Rama 3");
-  const [couValues, setCouValues] = useState({
+  const emptyCou = {
     firstBranch: _.cloneDeep(branchRow),
     secondBranch: _.cloneDeep(branchRow),
     thirdBranch: _.cloneDeep(branchRow),
@@ -40,11 +40,21 @@ const App = () => {
     een: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
     vab: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
     production: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
-  });
+  }
+  let storedCouValues = localStorage.getItem('couApp_cou');
+  if (storedCouValues) {
+    storedCouValues = JSON.parse(storedCouValues);
+  }
+  const [couValues, setCouValues] = useState(_.cloneDeep(storedCouValues || emptyCou));
+
+  const saveCouValues = (content) => {
+    setCouValues(_.cloneDeep(content));
+    localStorage.setItem('couApp_cou', JSON.stringify(content));
+  };
 
   const handleCouValueChange = (value, cellKey) => {
     _.set(couValues, cellKey, value);
-    setCouValues(_.cloneDeep(couValues));
+    saveCouValues(couValues);
   };
 
   const IntermediateUseRow = (rowKey) => {
@@ -469,7 +479,11 @@ const App = () => {
         computeTotal("totalUses");
     }
 
-    setCouValues(_.cloneDeep(couValues));
+    saveCouValues(couValues);
+  };
+
+  const empty = () => {
+    saveCouValues(emptyCou);
   };
 
   return (
@@ -480,6 +494,9 @@ const App = () => {
       <main>
         <Button variant="primary" onClick={compute}>
           Calcular
+        </Button>
+        <Button variant="danger" onClick={empty}>
+          Vaciar
         </Button>
         <Table striped bordered hover className="text-center align-middle mt-3">
           <thead>
