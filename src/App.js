@@ -50,6 +50,8 @@ const App = () => {
     _.cloneDeep(storedCouValues || emptyCou)
   );
 
+  // save in the internal component variable and the browser local storage so the user
+  // can still access the values after refreshing/reopening the web app
   const saveCouValues = (content) => {
     setCouValues(_.cloneDeep(content));
     localStorage.setItem("couApp_cou", JSON.stringify(content));
@@ -230,7 +232,7 @@ const App = () => {
     );
   };
 
-  const nilEmptyProps = (obj) => {
+  const nilAndEmptyProps = (obj) => {
     const keys = [];
 
     for (let key in obj) {
@@ -242,14 +244,26 @@ const App = () => {
     return keys;
   };
 
+  // it's required to surround values with parenthesis for the algebra.js library to work
+  // it breaks when the values are negative and they are not surrounded
   const surround = (val) => {
     return "(" + val + ")";
+  };
+
+  const shouldCompute = (val, path) => {
+    let cond = false;
+
+    if (!_.isNil(val)) {
+      cond = val !== _.get(couValues, path);
+      if (cond) _.set(couValues, path, val);
+    }
+
+    return cond;
   };
 
   // TODO: for the computing operations, we should unifiy everything using the equations libray (Algebra.js) (should we?)
 
   const computeIntermediateUseSt = (rowKey) => {
-    let shouldCompute = false;
     let val = null;
 
     // compute from intermediate cells
@@ -276,7 +290,7 @@ const App = () => {
         imports: couValues.imports.intermediateUse.st,
         totalUses: couValues.totalUses.intermediateUse.st,
       };
-      const noValueProps = nilEmptyProps(colEquationFactors);
+      const noValueProps = nilAndEmptyProps(colEquationFactors);
       // if it's detected that the only missing value from the column ones is the current row then we solve the equation
       if (noValueProps.length === 1 && noValueProps[0] === rowKey) {
         // build equation expression
@@ -324,7 +338,7 @@ const App = () => {
         st2: couValues[rowKey].finalUse.st,
         total: couValues[rowKey].total,
       };
-      const noValueProps = nilEmptyProps(stAndTotalEquationFactors);
+      const noValueProps = nilAndEmptyProps(stAndTotalEquationFactors);
       if (noValueProps.length === 1 && noValueProps[0] === "st1") {
         const leftSide = "x + " + surround(stAndTotalEquationFactors.st2);
         const rightSide = stAndTotalEquationFactors.total;
@@ -337,16 +351,10 @@ const App = () => {
       }
     }
 
-    if (!_.isNil(val)) {
-      shouldCompute = val !== couValues[rowKey].intermediateUse.st;
-      if (shouldCompute) couValues[rowKey].intermediateUse.st = val;
-    }
-
-    return shouldCompute;
+    return shouldCompute(val, rowKey + ".intermediateUse.st");
   };
 
   const computeIntermediateTotalUse = (columnKey) => {
-    let shouldCompute = false;
     let val = null;
 
     if (
@@ -370,7 +378,7 @@ const App = () => {
         vab: couValues.vab.intermediateUse[columnKey],
         production: couValues.production.intermediateUse[columnKey],
       };
-      const noValueProps = nilEmptyProps(totalUseEquationFactors);
+      const noValueProps = nilAndEmptyProps(totalUseEquationFactors);
       if (noValueProps.length === 1 && noValueProps[0] === "totalUses") {
         const leftSide = "x + " + surround(totalUseEquationFactors.vab);
         const rightSide = totalUseEquationFactors.production;
@@ -392,7 +400,7 @@ const App = () => {
         gov: couValues.totalUses.intermediateUse.gov,
         st: couValues.totalUses.intermediateUse.st,
       };
-      const noValueProps = nilEmptyProps(rowEquationFactors);
+      const noValueProps = nilAndEmptyProps(rowEquationFactors);
       // if it's detected that the only missing value from the row ones is the current column cell then we solve the equation
       if (noValueProps.length === 1 && noValueProps[0] === columnKey) {
         // build equation expression
@@ -422,16 +430,10 @@ const App = () => {
       }
     }
 
-    if (!_.isNil(val)) {
-      shouldCompute = val !== couValues.totalUses.intermediateUse[columnKey];
-      if (shouldCompute) couValues.totalUses.intermediateUse[columnKey] = val;
-    }
-
-    return shouldCompute;
+    return shouldCompute(val, "totalUses.intermediateUse." + columnKey);
   };
 
   const computeVab = (columnKey) => {
-    let shouldCompute = false;
     let val = null;
 
     if (
@@ -453,7 +455,7 @@ const App = () => {
         vab: couValues.vab.intermediateUse[columnKey],
         production: couValues.production.intermediateUse[columnKey],
       };
-      const noValueProps = nilEmptyProps(totalUseEquationFactors);
+      const noValueProps = nilAndEmptyProps(totalUseEquationFactors);
       if (noValueProps.length === 1 && noValueProps[0] === "vab") {
         const leftSide = totalUseEquationFactors.totalUses + " + x";
         const rightSide = totalUseEquationFactors.production;
@@ -475,7 +477,7 @@ const App = () => {
         gov: couValues.vab.intermediateUse.gov,
         st: couValues.vab.intermediateUse.st,
       };
-      const noValueProps = nilEmptyProps(rowEquationFactors);
+      const noValueProps = nilAndEmptyProps(rowEquationFactors);
       // if it's detected that the only missing value from the row ones is the current column cell then we solve the equation
       if (noValueProps.length === 1 && noValueProps[0] === columnKey) {
         // build equation expression
@@ -505,16 +507,10 @@ const App = () => {
       }
     }
 
-    if (!_.isNil(val)) {
-      shouldCompute = val !== couValues.vab.intermediateUse[columnKey];
-      if (shouldCompute) couValues.vab.intermediateUse[columnKey] = val;
-    }
-
-    return shouldCompute;
+    return shouldCompute(val, "vab.intermediateUse." + columnKey)
   };
 
   const computeProduction = (columnKey) => {
-    let shouldCompute = false;
     let val = null;
 
     if (
@@ -522,8 +518,8 @@ const App = () => {
       couValues.totalUses.intermediateUse[columnKey]
     ) {
       val = _.toString(
-        _.toNumber(couValues.production.intermediateUse[columnKey]) +
-          _.toNumber(couValues.production.intermediateUse[columnKey])
+        _.toNumber(couValues.vab.intermediateUse[columnKey]) +
+          _.toNumber(couValues.totalUses.intermediateUse[columnKey])
       );
     }
 
@@ -534,7 +530,7 @@ const App = () => {
         vab: couValues.vab.intermediateUse[columnKey],
         production: couValues.production.intermediateUse[columnKey],
       };
-      const noValueProps = nilEmptyProps(totalUseEquationFactors);
+      const noValueProps = nilAndEmptyProps(totalUseEquationFactors);
       if (noValueProps.length === 1 && noValueProps[0] === "production") {
         const leftSide =
           totalUseEquationFactors.totalUses +
@@ -559,7 +555,7 @@ const App = () => {
         gov: couValues.production.intermediateUse.gov,
         st: couValues.production.intermediateUse.st,
       };
-      const noValueProps = nilEmptyProps(rowEquationFactors);
+      const noValueProps = nilAndEmptyProps(rowEquationFactors);
       // if it's detected that the only missing value from the row ones is the current column cell then we solve the equation
       if (noValueProps.length === 1 && noValueProps[0] === columnKey) {
         // build equation expression
@@ -595,16 +591,10 @@ const App = () => {
       }
     }
 
-    if (!_.isNil(val)) {
-      shouldCompute = val !== couValues.production.intermediateUse[columnKey];
-      if (shouldCompute) couValues.production.intermediateUse[columnKey] = val;
-    }
-
-    return shouldCompute;
+    return shouldCompute(val, "production.intermediateUse." + columnKey);
   };
 
   const computeFinalUseSt = (rowKey) => {
-    let shouldCompute = false;
     let val = null;
 
     if (rowKey === "gov") {
@@ -635,7 +625,7 @@ const App = () => {
         imports: couValues.imports.finalUse.st,
         totalUses: couValues.totalUses.finalUse.st,
       };
-      const noValueProps = nilEmptyProps(colEquationFactors);
+      const noValueProps = nilAndEmptyProps(colEquationFactors);
       // if it's detected that the only missing value from the column ones is the current row then we solve the equation
       if (noValueProps.length === 1 && noValueProps[0] === rowKey) {
         // build equation expression
@@ -676,7 +666,7 @@ const App = () => {
         st2: couValues[rowKey].finalUse.st,
         total: couValues[rowKey].total,
       };
-      const noValueProps = nilEmptyProps(stAndTotalEquationFactors);
+      const noValueProps = nilAndEmptyProps(stAndTotalEquationFactors);
       if (noValueProps.length === 1 && noValueProps[0] === "st2") {
         const leftSide = stAndTotalEquationFactors.st1 + " + x";
         const rightSide = stAndTotalEquationFactors.total;
@@ -689,33 +679,27 @@ const App = () => {
       }
     }
 
-    if (!_.isNil(val)) {
-      shouldCompute = val !== couValues[rowKey].finalUse.st;
-      if (shouldCompute) couValues[rowKey].finalUse.st = val;
-    }
-
-    return shouldCompute;
+    return shouldCompute(val, rowKey + ".finalUse.st");
   };
 
   const computeFinalTotalUse = (columnKey) => {
-    let shouldCompute = false;
     let val = null;
 
     if (columnKey === "gcfGov") {
-      if (_.get(couValues.gov.finalUse, columnKey)) {
-        val = _.toString(_.toNumber(_.get(couValues.gov.finalUse, columnKey)));
+      if (couValues.gov.finalUse.columnKey) {
+        val = _.toString(_.toNumber(couValues.gov.finalUse.columnKey));
       }
     } else if (
-      _.get(couValues.firstBranch.finalUse, columnKey) &&
-      _.get(couValues.secondBranch.finalUse, columnKey) &&
-      _.get(couValues.thirdBranch.finalUse, columnKey) &&
-      _.get(couValues.imports.finalUse, columnKey)
+      couValues.firstBranch.finalUse.columnKey &&
+      couValues.secondBranch.finalUse.columnKey &&
+      couValues.thirdBranch.finalUse.columnKey &&
+      couValues.imports.finalUse.columnKey
     ) {
       val = _.toString(
-        _.toNumber(_.get(couValues.firstBranch.finalUse, columnKey)) +
-          _.toNumber(_.get(couValues.secondBranch.finalUse, columnKey)) +
-          _.toNumber(_.get(couValues.thirdBranch.finalUse, columnKey)) +
-          _.toNumber(_.get(couValues.imports.finalUse, columnKey))
+        _.toNumber(couValues.firstBranch.finalUse.columnKey) +
+          _.toNumber(couValues.secondBranch.finalUse.columnKey) +
+          _.toNumber(couValues.thirdBranch.finalUse.columnKey) +
+          _.toNumber(couValues.imports.finalUse.columnKey)
       );
     }
 
@@ -729,7 +713,7 @@ const App = () => {
         exports: couValues.totalUses.finalUse.exports,
         st: couValues.totalUses.finalUse.st,
       };
-      const noValueProps = nilEmptyProps(rowEquationFactors);
+      const noValueProps = nilAndEmptyProps(rowEquationFactors);
       // if it's detected that the only missing value from the row ones is the current column cell then we solve the equation
       if (noValueProps.length === 1 && noValueProps[0] === columnKey) {
         // build equation expression
@@ -765,16 +749,10 @@ const App = () => {
       }
     }
 
-    if (!_.isNil(val)) {
-      shouldCompute = val !== couValues.totalUses.finalUse[columnKey];
-      if (shouldCompute) couValues.totalUses.finalUse[columnKey] = val;
-    }
-
-    return shouldCompute;
+    return shouldCompute(val, "totalUses.finalUse." + columnKey);
   };
 
   const computeTotal = (rowKey) => {
-    let shouldCompute = false;
     let val = null;
 
     if (
@@ -806,7 +784,7 @@ const App = () => {
         imports: couValues.imports.total,
         totalUses: couValues.totalUses.total,
       };
-      const noValueProps = nilEmptyProps(colEquationFactors);
+      const noValueProps = nilAndEmptyProps(colEquationFactors);
       // if it's detected that the only missing value from the column ones is the current row then we solve the equation
       if (noValueProps.length === 1 && noValueProps[0] === rowKey) {
         // build equation expression
@@ -840,20 +818,19 @@ const App = () => {
       }
     }
 
-    if (!_.isNil(val)) {
-      shouldCompute = val !== couValues[rowKey].total;
-      if (shouldCompute) couValues[rowKey].total = val;
-    }
-
-    return shouldCompute;
+    return shouldCompute(val, rowKey + ".total");
   };
 
   const compute = () => {
-    let shouldCompute = true;
-    let maxAmountOfIterations = 1000;
+    let keepComputing = true;
+    // we put a limit to the number of iterations as continous calculations
+    // sometimes lead to contradictory values which causes infinite looping
+    // the app is still not good enough for detecting which values are causing the contradiction
+    // so we just use a limit, this (TODO) should be fixed in future versions
+    let maxAmountOfIterations = 10;
 
-    while (shouldCompute) {
-      shouldCompute =
+    while (keepComputing) {
+      keepComputing =
         // Intermediate Use ST
         computeIntermediateUseSt("firstBranch") ||
         computeIntermediateUseSt("secondBranch") ||
@@ -908,7 +885,7 @@ const App = () => {
       // TODO: compute inner final use values
       maxAmountOfIterations--;
       if (maxAmountOfIterations === 0) {
-        shouldCompute = false;
+        keepComputing = false;
       }
     }
 
