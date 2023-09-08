@@ -3,6 +3,7 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import "./App.css";
 import _ from "lodash";
+import algebra from "algebra.js";
 
 const branchRow = {
   intermediateUse: {
@@ -40,16 +41,18 @@ const App = () => {
     een: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
     vab: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
     production: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
-  }
-  let storedCouValues = localStorage.getItem('couApp_cou');
+  };
+  let storedCouValues = localStorage.getItem("couApp_cou");
   if (storedCouValues) {
     storedCouValues = JSON.parse(storedCouValues);
   }
-  const [couValues, setCouValues] = useState(_.cloneDeep(storedCouValues || emptyCou));
+  const [couValues, setCouValues] = useState(
+    _.cloneDeep(storedCouValues || emptyCou)
+  );
 
   const saveCouValues = (content) => {
     setCouValues(_.cloneDeep(content));
-    localStorage.setItem('couApp_cou', JSON.stringify(content));
+    localStorage.setItem("couApp_cou", JSON.stringify(content));
   };
 
   const handleCouValueChange = (value, cellKey) => {
@@ -227,8 +230,21 @@ const App = () => {
     );
   };
 
+  const nilEmptyProps = (obj) => {
+    const keys = [];
+
+    for (let key in obj) {
+      if (obj[key] === undefined || obj[key] === null || obj[key] === "") {
+        keys.push(key);
+      }
+    }
+
+    return keys;
+  };
+
   const computeIntermediateUseSt = (rowKey) => {
     let shouldCompute = false;
+    let val = null;
 
     // compute from intermediate cells
     if (
@@ -237,19 +253,48 @@ const App = () => {
       couValues[rowKey].intermediateUse.thirdBranch &&
       couValues[rowKey].intermediateUse.gov
     ) {
-      const val = _.toString(
+      val = _.toString(
         _.toNumber(couValues[rowKey].intermediateUse.firstBranch) +
           _.toNumber(couValues[rowKey].intermediateUse.secondBranch) +
           _.toNumber(couValues[rowKey].intermediateUse.thirdBranch) +
           _.toNumber(couValues[rowKey].intermediateUse.gov)
       );
-
-      shouldCompute = val !== couValues[rowKey].intermediateUse.st;
-
-      if (shouldCompute) couValues[rowKey].intermediateUse.st = val;
     }
     // TODO: compute from st column values
+    else if (!couValues[rowKey].intermediateUse.st) {
+      const eqFactors = {
+        firstBranch: couValues.firstBranch.intermediateUse.st,
+        secondBranch: couValues.secondBranch.intermediateUse.st,
+        thirdBranch: couValues.thirdBranch.intermediateUse.st,
+        imports: couValues.imports.intermediateUse.st,
+        totalUses: couValues.totalUses.intermediateUse.st,
+      };
+      const noValueProps = nilEmptyProps(eqFactors);
+      if (noValueProps.length === 1 && noValueProps[0] === rowKey) {
+        const leftSide =
+          (noValueProps[0] === "firstBranch" ? "x" : eqFactors.firstBranch) +
+          " + " +
+          (noValueProps[0] === "secondBranch" ? "x" : eqFactors.secondBranch) +
+          " + " +
+          (noValueProps[0] === "thirdBranch" ? "x" : eqFactors.thirdBranch) +
+          " + " +
+          (noValueProps[0] === "imports" ? "x" : eqFactors.imports);
+        const rightSide =
+          noValueProps[0] === "totalUses" ? "x" : eqFactors.totalUses;
+        const expresion = new algebra.Equation(
+          algebra.parse(leftSide),
+          algebra.parse(rightSide)
+        );
+        const solucion = expresion.solveFor("x");
+        val = solucion.numer / solucion.denom;
+      }
+    }
     // TODO: compute from the other st and the total
+
+    if (val) {
+      shouldCompute = val !== couValues[rowKey].intermediateUse.st;
+      if (shouldCompute) couValues[rowKey].intermediateUse.st = val;
+    }
 
     return shouldCompute;
   };
