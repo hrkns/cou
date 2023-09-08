@@ -507,7 +507,7 @@ const App = () => {
       }
     }
 
-    return shouldCompute(val, "vab.intermediateUse." + columnKey)
+    return shouldCompute(val, "vab.intermediateUse." + columnKey);
   };
 
   const computeProduction = (columnKey) => {
@@ -821,13 +821,377 @@ const App = () => {
     return shouldCompute(val, rowKey + ".total");
   };
 
+  const generateTopHalfInnerCellsEquations = (rowPrefix) => {
+    let equations = {
+      [rowPrefix + ".intermediateUse.firstBranch"]: [
+        "x",
+        "+",
+        rowPrefix + ".intermediateUse.secondBranch",
+        "+",
+        rowPrefix + ".intermediateUse.thirdBranch",
+        "+",
+        rowPrefix + ".intermediateUse.gov",
+        "=",
+        rowPrefix + ".intermediateUse.st",
+      ],
+      [rowPrefix + ".intermediateUse.secondBranch"]: [
+        rowPrefix + ".intermediateUse.firstBranch",
+        "+",
+        "x",
+        "+",
+        rowPrefix + ".intermediateUse.thirdBranch",
+        "+",
+        rowPrefix + ".intermediateUse.gov",
+        "=",
+        rowPrefix + ".intermediateUse.st",
+      ],
+      [rowPrefix + ".intermediateUse.thirdBranch"]: [
+        rowPrefix + ".intermediateUse.firstBranch",
+        "+",
+        rowPrefix + ".intermediateUse.secondBranch",
+        "+",
+        "x",
+        "+",
+        rowPrefix + ".intermediateUse.gov",
+        "=",
+        rowPrefix + ".intermediateUse.st",
+      ],
+      [rowPrefix + ".intermediateUse.gov"]: [
+        rowPrefix + ".intermediateUse.firstBranch",
+        "+",
+        rowPrefix + ".intermediateUse.secondBranch",
+        "+",
+        rowPrefix + ".intermediateUse.thirdBranch",
+        "+",
+        "x",
+        "=",
+        rowPrefix + ".intermediateUse.st",
+      ],
+    };
+
+    if (rowPrefix === "totalUses") {
+      equations = {
+        ...equations,
+        ...{
+          [rowPrefix + ".finalUse.gcfHomes"]: [
+            "x",
+            "+",
+            rowPrefix + ".finalUse.gcfGov",
+            "+",
+            rowPrefix + ".finalUse.fbkFbkf",
+            "+",
+            rowPrefix + ".finalUse.fbkVe",
+            "+",
+            rowPrefix + ".finalUse.exports",
+            "=",
+            rowPrefix + ".finalUse.st",
+          ],
+          [rowPrefix + ".finalUse.gcfGov"]: [
+            rowPrefix + ".finalUse.gcfHomes",
+            "+",
+            "x",
+            "+",
+            rowPrefix + ".finalUse.fbkFbkf",
+            "+",
+            rowPrefix + ".finalUse.fbkVe",
+            "+",
+            rowPrefix + ".finalUse.exports",
+            "=",
+            rowPrefix + ".finalUse.st",
+          ],
+          [rowPrefix + ".finalUse.fbkFbkf"]: [
+            rowPrefix + ".finalUse.gcfHomes",
+            "+",
+            rowPrefix + ".finalUse.gcfGov",
+            "+",
+            "x",
+            "+",
+            rowPrefix + ".finalUse.fbkVe",
+            "+",
+            rowPrefix + ".finalUse.exports",
+            "=",
+            rowPrefix + ".finalUse.st",
+          ],
+          [rowPrefix + ".finalUse.fbkVe"]: [
+            rowPrefix + ".finalUse.gcfHomes",
+            "+",
+            rowPrefix + ".finalUse.gcfGov",
+            "+",
+            rowPrefix + ".finalUse.fbkFbkf",
+            "+",
+            "x",
+            "+",
+            rowPrefix + ".finalUse.exports",
+            "=",
+            rowPrefix + ".finalUse.st",
+          ],
+          [rowPrefix + ".finalUse.exports"]: [
+            rowPrefix + ".finalUse.gcfHomes",
+            "+",
+            rowPrefix + ".finalUse.gcfGov",
+            "+",
+            rowPrefix + ".finalUse.fbkFbkf",
+            "+",
+            rowPrefix + ".finalUse.fbkVe",
+            "+",
+            "x",
+            "=",
+            rowPrefix + ".finalUse.st",
+          ],
+        },
+      };
+    } else {
+      equations = {
+        ...equations,
+        ...{
+          [rowPrefix + ".finalUse.gcfHomes"]: [
+            "x",
+            "+",
+            rowPrefix + ".finalUse.fbkFbkf",
+            "+",
+            rowPrefix + ".finalUse.fbkVe",
+            "+",
+            rowPrefix + ".finalUse.exports",
+            "=",
+            rowPrefix + ".finalUse.st",
+          ],
+          [rowPrefix + ".finalUse.fbkFbkf"]: [
+            rowPrefix + ".finalUse.gcfHomes",
+            "+",
+            "x",
+            "+",
+            rowPrefix + ".finalUse.fbkVe",
+            "+",
+            rowPrefix + ".finalUse.exports",
+            "=",
+            rowPrefix + ".finalUse.st",
+          ],
+          [rowPrefix + ".finalUse.fbkVe"]: [
+            rowPrefix + ".finalUse.gcfHomes",
+            "+",
+            rowPrefix + ".finalUse.fbkFbkf",
+            "+",
+            "x",
+            "+",
+            rowPrefix + ".finalUse.exports",
+            "=",
+            rowPrefix + ".finalUse.st",
+          ],
+          [rowPrefix + ".finalUse.exports"]: [
+            rowPrefix + ".finalUse.gcfHomes",
+            "+",
+            rowPrefix + ".finalUse.fbkFbkf",
+            "+",
+            rowPrefix + ".finalUse.fbkVe",
+            "+",
+            "x",
+            "=",
+            rowPrefix + ".finalUse.st",
+          ],
+        },
+      };
+    }
+
+    return equations;
+  };
+
+  const generateBottomHalfInnerCellsEquations = (rowPrefix) => {
+    let equations = {};
+
+    if (rowPrefix === "ra" || rowPrefix === "ckf") {
+      equations = {
+        [rowPrefix + ".intermediateUse.firstBranch"]: [
+          "x",
+          "+",
+          rowPrefix + ".intermediateUse.secondBranch",
+          "+",
+          rowPrefix + ".intermediateUse.thirdBranch",
+          "+",
+          rowPrefix + ".intermediateUse.gov",
+          "=",
+          rowPrefix + ".intermediateUse.st",
+        ],
+        [rowPrefix + ".intermediateUse.secondBranch"]: [
+          rowPrefix + ".intermediateUse.firstBranch",
+          "+",
+          "x",
+          "+",
+          rowPrefix + ".intermediateUse.thirdBranch",
+          "+",
+          rowPrefix + ".intermediateUse.gov",
+          "=",
+          rowPrefix + ".intermediateUse.st",
+        ],
+        [rowPrefix + ".intermediateUse.thirdBranch"]: [
+          rowPrefix + ".intermediateUse.firstBranch",
+          "+",
+          rowPrefix + ".intermediateUse.secondBranch",
+          "+",
+          "x",
+          "+",
+          rowPrefix + ".intermediateUse.gov",
+          "=",
+          rowPrefix + ".intermediateUse.st",
+        ],
+        [rowPrefix + ".intermediateUse.gov"]: [
+          rowPrefix + ".intermediateUse.firstBranch",
+          "+",
+          rowPrefix + ".intermediateUse.secondBranch",
+          "+",
+          rowPrefix + ".intermediateUse.thirdBranch",
+          "+",
+          "x",
+          "=",
+          rowPrefix + ".intermediateUse.st",
+        ],
+      };
+    } else {
+      equations = {
+        [rowPrefix + ".intermediateUse.firstBranch"]: [
+          "x",
+          "+",
+          rowPrefix + ".intermediateUse.secondBranch",
+          "+",
+          rowPrefix + ".intermediateUse.thirdBranch",
+          "=",
+          rowPrefix + ".intermediateUse.st",
+        ],
+        [rowPrefix + ".intermediateUse.secondBranch"]: [
+          rowPrefix + ".intermediateUse.firstBranch",
+          "+",
+          "x",
+          "+",
+          rowPrefix + ".intermediateUse.thirdBranch",
+          "=",
+          rowPrefix + ".intermediateUse.st",
+        ],
+        [rowPrefix + ".intermediateUse.thirdBranch"]: [
+          rowPrefix + ".intermediateUse.firstBranch",
+          "+",
+          rowPrefix + ".intermediateUse.secondBranch",
+          "+",
+          "x",
+          "=",
+          rowPrefix + ".intermediateUse.st",
+        ],
+      };
+    }
+
+    return equations;
+  };
+
+  const processEquations = (equations, print) => {
+    let hasComputed = false;
+
+    Object.keys(equations).forEach((targetCell) => {
+      const equationElements = equations[targetCell];
+      let leftSide = "";
+      let rightSide = "";
+      let requiredValuesAmount = 0;
+      let definedValuesAmount = 0;
+      let switchToRightSide = false;
+
+      equationElements.forEach((element) => {
+        let content;
+        switch (element) {
+          case "x":
+            {
+              content = element;
+              requiredValuesAmount++;
+            }
+            break;
+          case "+":
+            {
+              content = element;
+            }
+            break;
+          case "=":
+            {
+              switchToRightSide = true;
+            }
+            break;
+          default: {
+            let val = _.get(couValues, element);
+            if (!_.isNil(val) && val !== "") {
+              definedValuesAmount++;
+              content = surround(_.toString(val));
+            }
+            requiredValuesAmount++;
+          }
+        }
+
+        if (!_.isNil(content) && content !== "") {
+          if (switchToRightSide) {
+            rightSide += content;
+          } else {
+            leftSide += content;
+          }
+        }
+      });
+
+      if (requiredValuesAmount === definedValuesAmount + 1) {
+        const expresion = new algebra.Equation(
+          algebra.parse(_.toString(leftSide)),
+          algebra.parse(_.toString(rightSide))
+        );
+        const solution = expresion.solveFor("x");
+        const val = solution.numer / solution.denom;
+        hasComputed = shouldCompute(val, targetCell);
+      }
+    });
+
+    return hasComputed;
+  };
+
+  const computeInnerCells = () => {
+    let hasComputed = false;
+
+    // compute inner cells of top half of the cou (both intermediate and final uses) using row values
+    let equations = {
+      ...generateTopHalfInnerCellsEquations("firstBranch"),
+      ...generateTopHalfInnerCellsEquations("secondBranch"),
+      ...generateTopHalfInnerCellsEquations("thirdBranch"),
+      ...generateTopHalfInnerCellsEquations("imports"),
+      ...generateTopHalfInnerCellsEquations("totalUses"),
+    };
+
+    hasComputed = processEquations(equations);
+
+    // assign value gcf of government if required
+    if (
+      (_.isNil(couValues.gov.finalUse.gcfGov) ||
+        couValues.gov.finalUse.gcfGov === "") &&
+      ((!_.isNil(couValues.gov.finalUse.st) &&
+        couValues.gov.finalUse.st !== "") ||
+        (!_.isNil(couValues.gov.total) && couValues.gov.total !== ""))
+    ) {
+      const val =
+        _.isNil(couValues.gov.finalUse.st) || couValues.gov.finalUse.st === ""
+          ? couValues.gov.total
+          : couValues.gov.finalUse.st;
+      hasComputed = shouldCompute(val, "gov.finalUse.gcfGov");
+    }
+
+    // compute inner cells of bottom half of the cou using row values
+    equations = {
+      ...generateBottomHalfInnerCellsEquations("ra"),
+      ...generateBottomHalfInnerCellsEquations("ckf"),
+      ...generateBottomHalfInnerCellsEquations("tax"),
+      ...generateBottomHalfInnerCellsEquations("een"),
+    };
+
+    hasComputed = processEquations(equations, true) || hasComputed;
+
+    return hasComputed;
+  };
+
   const compute = () => {
     let keepComputing = true;
     // we put a limit to the number of iterations as continous calculations
     // sometimes lead to contradictory values which causes infinite looping
     // the app is still not good enough for detecting which values are causing the contradiction
     // so we just use a limit, this (TODO) should be fixed in future versions
-    let maxAmountOfIterations = 10;
+    let maxAmountOfIterations = 1000;
 
     while (keepComputing) {
       keepComputing =
@@ -880,9 +1244,9 @@ const App = () => {
         computeTotal("thirdBranch") ||
         computeTotal("gov") ||
         computeTotal("imports") ||
-        computeTotal("totalUses");
-      // TODO: compute inner intermediate use values
-      // TODO: compute inner final use values
+        computeTotal("totalUses") ||
+        computeInnerCells();
+
       maxAmountOfIterations--;
       if (maxAmountOfIterations === 0) {
         keepComputing = false;
