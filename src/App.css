@@ -1,0 +1,13 @@
+.no-use {
+  background-color: black !important;
+}
+
+.invisible-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: 5px;
+  outline: none;
+  text-align: center
+}
