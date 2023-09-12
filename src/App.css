@@ -15,3 +15,17 @@
 .custom-table td {
   min-width: 100px;  /* Ajusta este valor según tus necesidades */
 }
+
+.custom-footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  background: #f8f8f8;
+  padding: 10px 0;
+}
+
+.custom-footer a {
+  color: #3f3f3f;
+  text-decoration: none;
+}
