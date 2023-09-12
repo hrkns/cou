@@ -1497,7 +1497,7 @@ const Cou = () => {
             Usar Gobierno
           </label>
         </div>
-        <Table striped bordered hover className="text-center align-middle mt-3">
+        <Table striped bordered hover className="text-center align-middle mt-3 custom-table">
           <thead>
             <tr>
               <th rowSpan={3}></th>
