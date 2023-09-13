@@ -4,7 +4,6 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import React, { useEffect, useState } from "react";
 import { getItem, setItem } from "../shared/db";
-import { getSettings } from "../shared/settings";
 
 const branchRow = {
   intermediateUse: {
@@ -25,13 +24,30 @@ const branchRow = {
   total: null,
 };
 
-const Cou = () => {
+const Cou = ({ appValues, setAppValues }) => {
   // TODO: change to dynamics branch amount: an input for defining the amount
   // of branches (1 or more) and from there generate dinamically the corresponding
   // row and columns, modifying also the corresponding calculations
   const [firstBranchName, setFirstBranchName] = useState("Rama 1");
+  useEffect(() => {
+    appValues.branches[0].name = firstBranchName;
+    setAppValues(_.cloneDeep(appValues));
+  }, [firstBranchName]);
+
   const [secondBranchName, setSecondBranchName] = useState("Rama 2");
+  useEffect(() => {
+    appValues.branches[1].name = secondBranchName;
+    setAppValues(_.cloneDeep(appValues));
+  }, [secondBranchName]);
+
   const [thirdBranchName, setThirdBranchName] = useState("Rama 3");
+  useEffect(() => {
+    if (appValues.branches[2]) {
+      appValues.branches[2].name = thirdBranchName;
+      setAppValues(_.cloneDeep(appValues));
+    }
+  }, [thirdBranchName]);
+
   const emptyCou = {
     firstBranch: _.cloneDeep(branchRow),
     secondBranch: _.cloneDeep(branchRow),
@@ -47,9 +63,10 @@ const Cou = () => {
     production: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
   };
   const [couValues, setCouValues] = useState(getItem("cou") || emptyCou);
-  let settings = getSettings();
-  const [useThirdBranch, setUseThirdBranch] = useState(settings.useThirdBranch);
-  const [useGov, setUseGov] = useState(settings.useGov);
+  const [useThirdBranch, setUseThirdBranch] = useState(
+    appValues.useThirdBranch
+  );
+  const [useGov, setUseGov] = useState(appValues.useGov);
 
   // save in the internal component variable and the browser local storage so the user
   // can still access the values after refreshing/reopening the web app
@@ -65,7 +82,7 @@ const Cou = () => {
 
   const IntermediateUseRow = (rowKey) => {
     return [
-      <td>
+      <td key={`${rowKey}1`}>
         <input
           className="invisible-input"
           type="number"
@@ -78,7 +95,7 @@ const Cou = () => {
           }}
         />
       </td>,
-      <td>
+      <td key={`${rowKey}2`}>
         <input
           className="invisible-input"
           type="number"
@@ -91,7 +108,7 @@ const Cou = () => {
           }}
         />
       </td>,
-      <td>
+      <td key={`${rowKey}3`}>
         <input
           className="invisible-input"
           type="number"
@@ -106,9 +123,9 @@ const Cou = () => {
       </td>,
       // no gov column is used when row is gov, tax or een
       rowKey === "gov" || rowKey === "tax" || rowKey === "een" ? (
-        <td className="no-use"></td>
+        <td className="no-use" key={`${rowKey}4`}></td>
       ) : (
-        <td>
+        <td key={`${rowKey}4`}>
           <input
             className="invisible-input"
             type="number"
@@ -122,7 +139,7 @@ const Cou = () => {
           />
         </td>
       ),
-      <td>
+      <td key={`${rowKey}5`}>
         <input
           className="invisible-input"
           type="number"
@@ -140,7 +157,7 @@ const Cou = () => {
 
   const FinalUseRow = (rowKey) => {
     return [
-      <td>
+      <td key={`${rowKey}6`}>
         <input
           className="invisible-input"
           type="number"
@@ -152,7 +169,7 @@ const Cou = () => {
       </td>,
       // gov gcf is used only when row is gov or totalUses
       rowKey === "gov" || rowKey === "totalUses" ? (
-        <td>
+        <td key={`${rowKey}7`}>
           <input
             className="invisible-input"
             type="number"
@@ -163,9 +180,9 @@ const Cou = () => {
           />
         </td>
       ) : (
-        <td className="no-use"></td>
+        <td className="no-use" key={`${rowKey}8`}></td>
       ),
-      <td>
+      <td key={`${rowKey}9`}>
         <input
           className="invisible-input"
           type="number"
@@ -175,7 +192,7 @@ const Cou = () => {
           }}
         />
       </td>,
-      <td>
+      <td key={`${rowKey}10`}>
         <input
           className="invisible-input"
           type="number"
@@ -185,7 +202,7 @@ const Cou = () => {
           }}
         />
       </td>,
-      <td>
+      <td key={`${rowKey}11`}>
         <input
           className="invisible-input"
           type="number"
@@ -195,7 +212,7 @@ const Cou = () => {
           }}
         />
       </td>,
-      <td>
+      <td key={`${rowKey}12`}>
         <input
           className="invisible-input"
           type="number"
@@ -209,21 +226,21 @@ const Cou = () => {
   };
 
   // cells used for second half of the bottom rows in the right side of the table
-  const DisabledCellsRow = () => {
+  const DisabledCellsRow = (rowKey) => {
     return [
-      <td className="no-use"></td>,
-      <td className="no-use"></td>,
-      <td className="no-use"></td>,
-      <td className="no-use"></td>,
-      <td className="no-use"></td>,
-      <td className="no-use"></td>,
-      <td className="no-use"></td>,
+      <td className="no-use" key={`${rowKey}6`}></td>,
+      <td className="no-use" key={`${rowKey}7`}></td>,
+      <td className="no-use" key={`${rowKey}8`}></td>,
+      <td className="no-use" key={`${rowKey}9`}></td>,
+      <td className="no-use" key={`${rowKey}10`}></td>,
+      <td className="no-use" key={`${rowKey}11`}></td>,
+      <td className="no-use" key={`${rowKey}12`}></td>,
     ];
   };
 
   const TotalCell = (rowKey) => {
     return (
-      <td>
+      <td key={`${rowKey}13`}>
         <input
           className="invisible-input"
           type="number"
@@ -1214,29 +1231,22 @@ const Cou = () => {
         let content;
         switch (element) {
           case "x":
-            {
-              content = element;
-              requiredValuesAmount++;
-            }
+            content = element;
+            requiredValuesAmount++;
             break;
           case "+":
-            {
-              content = element;
-            }
+            content = element;
             break;
           case "=":
-            {
-              switchToRightSide = true;
-            }
+            switchToRightSide = true;
             break;
-          default: {
+          default:
             let val = _.get(couValues, element);
             if (!_.isNil(val) && val !== "") {
               definedValuesAmount++;
               content = surround(_.toString(val));
             }
             requiredValuesAmount++;
-          }
         }
 
         if (!_.isNil(content) && content !== "") {
@@ -1406,7 +1416,8 @@ const Cou = () => {
   };
 
   useEffect(() => {
-    const val = useThirdBranch ? "" : "0";
+    // third branch dependent values
+    let val = useThirdBranch ? "" : "0";
     couValues.thirdBranch.intermediateUse.firstBranch = val;
     couValues.thirdBranch.intermediateUse.secondBranch = val;
     couValues.thirdBranch.intermediateUse.thirdBranch = val;
@@ -1432,12 +1443,9 @@ const Cou = () => {
     couValues.een.intermediateUse.thirdBranch = val;
     couValues.vab.intermediateUse.thirdBranch = val;
     couValues.production.intermediateUse.thirdBranch = val;
-    saveCouValues(couValues);
-    setItem("settings", { useThirdBranch, useGov });
-  }, [useThirdBranch]);
 
-  useEffect(() => {
-    const val = useGov ? "" : "0";
+    // gov dependent values
+    val = useGov ? "" : "0";
     couValues.gov.finalUse.gcfGov = val;
     couValues.gov.finalUse.st = val;
     couValues.gov.total = val;
@@ -1459,261 +1467,269 @@ const Cou = () => {
 
     couValues.vab.intermediateUse.gov = val;
     couValues.production.intermediateUse.gov = val;
+
     saveCouValues(couValues);
-    setItem("settings", { useThirdBranch, useGov });
-  }, [useGov]);
+    appValues.useGov = useGov;
+    appValues.useThirdBranch = useThirdBranch;
+    setAppValues(_.cloneDeep(appValues));
+
+    // following es lint rule is put there for disabling warning for not placing couValues as dependency
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useThirdBranch, useGov]);
 
   return (
-    <div className="m-5">
-      <h1>Cuadro de Oferta y Utilización</h1>
-      <div>
-        <Button variant="primary" onClick={compute}>
-          Calcular
-        </Button>
-        &nbsp;
-        <Button variant="danger" onClick={empty}>
-          Vaciar
-        </Button>
-        &nbsp;
-        <div className="form-check">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            onChange={(e) => setUseThirdBranch(e.target.checked)}
-            checked={useThirdBranch}
-          />
-          <label className="form-check-label" htmlFor="flexCheckDefault">
-            Usar Rama 3
-          </label>
-        </div>
-        <div className="form-check">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            onChange={(e) => setUseGov(e.target.checked)}
-            checked={useGov}
-          />
-          <label className="form-check-label" htmlFor="flexCheckDefault">
-            Usar Gobierno
-          </label>
-        </div>
-        <Table striped bordered hover className="text-center align-middle mt-3 custom-table">
-          <thead>
-            <tr>
-              <th rowSpan={3}></th>
-              <th colSpan={5} rowSpan={2}>
-                UTILIZACION INTERMEDIA
-              </th>
-              <th colSpan={6}>UTILIZACION FINAL</th>
-              <th rowSpan={3}>Total</th>
-            </tr>
-            <tr>
-              <th colSpan={2}>GCF</th>
-              <th colSpan={2}>FBK</th>
-              <th rowSpan={2}>Exportaciones</th>
-              <th rowSpan={2}>ST</th>
-            </tr>
-            <tr>
-              <th>
-                <input
-                  className="invisible-input"
-                  type="text"
-                  value={firstBranchName}
-                  onChange={(e) => setFirstBranchName(e.target.value)}
-                />
-              </th>
-              <th>
-                <input
-                  className="invisible-input"
-                  type="text"
-                  value={secondBranchName}
-                  onChange={(e) => setSecondBranchName(e.target.value)}
-                />
-              </th>
-              <th>
-                <input
-                  className="invisible-input"
-                  type="text"
-                  value={thirdBranchName}
-                  onChange={(e) => setThirdBranchName(e.target.value)}
-                />
-              </th>
-              <th>Serv. Gob</th>
-              <th>ST</th>
-              <th>Hogares</th>
-              <th>Gob.</th>
-              <th>FBKF</th>
-              <th>VE</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* First Branch Row */}
-            <tr>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="text"
-                  value={firstBranchName}
-                  onChange={(e) => setFirstBranchName(e.target.value)}
-                />
-              </td>
-              {IntermediateUseRow("firstBranch")}
-              {FinalUseRow("firstBranch")}
-              {TotalCell("firstBranch")}
-            </tr>
-
-            {/* Second Branch Row */}
-            <tr>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="text"
-                  value={secondBranchName}
-                  onChange={(e) => setSecondBranchName(e.target.value)}
-                />
-              </td>
-              {IntermediateUseRow("secondBranch")}
-              {FinalUseRow("secondBranch")}
-              {TotalCell("secondBranch")}
-            </tr>
-
-            {/* Third Branch Row */}
-            <tr>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="text"
-                  value={thirdBranchName}
-                  onChange={(e) => setThirdBranchName(e.target.value)}
-                />
-              </td>
-              {IntermediateUseRow("thirdBranch")}
-              {FinalUseRow("thirdBranch")}
-              {TotalCell("thirdBranch")}
-            </tr>
-
-            {/* Serv. Gob */}
-            <tr>
-              <td>
-                <strong>Serv. Gob.</strong>
-              </td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={couValues.gov.finalUse.gcfGov ?? ""}
-                  onChange={(e) => {
-                    handleCouValueChange(e.target.value, "gov.finalUse.gcfGov");
-                  }}
-                />
-              </td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td className="no-use"></td>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={couValues.gov.finalUse.st ?? ""}
-                  onChange={(e) => {
-                    handleCouValueChange(e.target.value, "gov.finalUse.st");
-                  }}
-                />
-              </td>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={couValues.gov.total ?? ""}
-                  onChange={(e) => {
-                    handleCouValueChange(e.target.value, "gov.total");
-                  }}
-                />
-              </td>
-            </tr>
-
-            {/* Imports Row */}
-            <tr>
-              <td>
-                <strong>Import.</strong>
-              </td>
-              {IntermediateUseRow("imports")}
-              {FinalUseRow("imports")}
-              {TotalCell("imports")}
-            </tr>
-
-            {/* Total Uses Row */}
-            <tr>
-              <td>
-                <strong>Usos Totales</strong>
-              </td>
-              {IntermediateUseRow("totalUses")}
-              {FinalUseRow("totalUses")}
-              {TotalCell("totalUses")}
-            </tr>
-
-            {/* RA Row */}
-            <tr>
-              <td>
-                <strong>RA</strong>
-              </td>
-              {IntermediateUseRow("ra")}
-              {DisabledCellsRow()}
-            </tr>
-
-            {/* CKF Row */}
-            <tr>
-              <td>
-                <strong>CKF</strong>
-              </td>
-              {IntermediateUseRow("ckf")}
-              {DisabledCellsRow()}
-            </tr>
-
-            {/* Imp-S Row */}
-            <tr>
-              <td>
-                <strong>Imp-S</strong>
-              </td>
-              {IntermediateUseRow("tax")}
-              {DisabledCellsRow()}
-            </tr>
-
-            {/* EEN Row */}
-            <tr>
-              <td>
-                <strong>EEN</strong>
-              </td>
-              {IntermediateUseRow("een")}
-              {DisabledCellsRow()}
-            </tr>
-
-            {/* VAB Row */}
-            <tr>
-              <td>
-                <strong>VAB</strong>
-              </td>
-              {IntermediateUseRow("vab")}
-              {DisabledCellsRow()}
-            </tr>
-
-            {/* Production Row */}
-            <tr>
-              <td>
-                <strong>Producción</strong>
-              </td>
-              {IntermediateUseRow("production")}
-              {DisabledCellsRow()}
-            </tr>
-          </tbody>
-        </Table>
+    <div>
+      <Button variant="primary" onClick={compute}>
+        Calcular
+      </Button>
+      &nbsp;
+      <Button variant="danger" onClick={empty}>
+        Vaciar
+      </Button>
+      &nbsp;
+      <div className="form-check">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          onChange={(e) => setUseThirdBranch(e.target.checked)}
+          checked={useThirdBranch}
+        />
+        <label className="form-check-label" htmlFor="flexCheckDefault">
+          Usar Rama 3
+        </label>
       </div>
+      <div className="form-check">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          onChange={(e) => setUseGov(e.target.checked)}
+          checked={useGov}
+        />
+        <label className="form-check-label" htmlFor="flexCheckDefault">
+          Usar Gobierno
+        </label>
+      </div>
+      <Table
+        striped
+        bordered
+        hover
+        className="text-center align-middle mt-3 custom-table"
+      >
+        <thead>
+          <tr>
+            <th rowSpan={3}></th>
+            <th colSpan={5} rowSpan={2}>
+              UTILIZACION INTERMEDIA
+            </th>
+            <th colSpan={6}>UTILIZACION FINAL</th>
+            <th rowSpan={3}>Total</th>
+          </tr>
+          <tr>
+            <th colSpan={2}>GCF</th>
+            <th colSpan={2}>FBK</th>
+            <th rowSpan={2}>Exportaciones</th>
+            <th rowSpan={2}>ST</th>
+          </tr>
+          <tr>
+            <th>
+              <input
+                className="invisible-input"
+                type="text"
+                value={firstBranchName}
+                onChange={(e) => setFirstBranchName(e.target.value)}
+              />
+            </th>
+            <th>
+              <input
+                className="invisible-input"
+                type="text"
+                value={secondBranchName}
+                onChange={(e) => setSecondBranchName(e.target.value)}
+              />
+            </th>
+            <th>
+              <input
+                className="invisible-input"
+                type="text"
+                value={thirdBranchName}
+                onChange={(e) => setThirdBranchName(e.target.value)}
+              />
+            </th>
+            <th>Serv. Gob</th>
+            <th>ST</th>
+            <th>Hogares</th>
+            <th>Gob.</th>
+            <th>FBKF</th>
+            <th>VE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* First Branch Row */}
+          <tr>
+            <td>
+              <input
+                className="invisible-input"
+                type="text"
+                value={firstBranchName}
+                onChange={(e) => setFirstBranchName(e.target.value)}
+              />
+            </td>
+            {IntermediateUseRow("firstBranch")}
+            {FinalUseRow("firstBranch")}
+            {TotalCell("firstBranch")}
+          </tr>
+
+          {/* Second Branch Row */}
+          <tr>
+            <td>
+              <input
+                className="invisible-input"
+                type="text"
+                value={secondBranchName}
+                onChange={(e) => setSecondBranchName(e.target.value)}
+              />
+            </td>
+            {IntermediateUseRow("secondBranch")}
+            {FinalUseRow("secondBranch")}
+            {TotalCell("secondBranch")}
+          </tr>
+
+          {/* Third Branch Row */}
+          <tr>
+            <td>
+              <input
+                className="invisible-input"
+                type="text"
+                value={thirdBranchName}
+                onChange={(e) => setThirdBranchName(e.target.value)}
+              />
+            </td>
+            {IntermediateUseRow("thirdBranch")}
+            {FinalUseRow("thirdBranch")}
+            {TotalCell("thirdBranch")}
+          </tr>
+
+          {/* Serv. Gob */}
+          <tr>
+            <td>
+              <strong>Serv. Gob.</strong>
+            </td>
+            <td className="no-use"></td>
+            <td className="no-use"></td>
+            <td className="no-use"></td>
+            <td className="no-use"></td>
+            <td className="no-use"></td>
+            <td className="no-use"></td>
+            <td>
+              <input
+                className="invisible-input"
+                type="number"
+                value={couValues.gov.finalUse.gcfGov ?? ""}
+                onChange={(e) => {
+                  handleCouValueChange(e.target.value, "gov.finalUse.gcfGov");
+                }}
+              />
+            </td>
+            <td className="no-use"></td>
+            <td className="no-use"></td>
+            <td className="no-use"></td>
+            <td>
+              <input
+                className="invisible-input"
+                type="number"
+                value={couValues.gov.finalUse.st ?? ""}
+                onChange={(e) => {
+                  handleCouValueChange(e.target.value, "gov.finalUse.st");
+                }}
+              />
+            </td>
+            <td>
+              <input
+                className="invisible-input"
+                type="number"
+                value={couValues.gov.total ?? ""}
+                onChange={(e) => {
+                  handleCouValueChange(e.target.value, "gov.total");
+                }}
+              />
+            </td>
+          </tr>
+
+          {/* Imports Row */}
+          <tr>
+            <td>
+              <strong>Import.</strong>
+            </td>
+            {IntermediateUseRow("imports")}
+            {FinalUseRow("imports")}
+            {TotalCell("imports")}
+          </tr>
+
+          {/* Total Uses Row */}
+          <tr>
+            <td>
+              <strong>Usos Totales</strong>
+            </td>
+            {IntermediateUseRow("totalUses")}
+            {FinalUseRow("totalUses")}
+            {TotalCell("totalUses")}
+          </tr>
+
+          {/* RA Row */}
+          <tr>
+            <td>
+              <strong>RA</strong>
+            </td>
+            {IntermediateUseRow("ra")}
+            {DisabledCellsRow("ra")}
+          </tr>
+
+          {/* CKF Row */}
+          <tr>
+            <td>
+              <strong>CKF</strong>
+            </td>
+            {IntermediateUseRow("ckf")}
+            {DisabledCellsRow("ckf")}
+          </tr>
+
+          {/* Imp-S Row */}
+          <tr>
+            <td>
+              <strong>Imp-S</strong>
+            </td>
+            {IntermediateUseRow("tax")}
+            {DisabledCellsRow("tax")}
+          </tr>
+
+          {/* EEN Row */}
+          <tr>
+            <td>
+              <strong>EEN</strong>
+            </td>
+            {IntermediateUseRow("een")}
+            {DisabledCellsRow("een")}
+          </tr>
+
+          {/* VAB Row */}
+          <tr>
+            <td>
+              <strong>VAB</strong>
+            </td>
+            {IntermediateUseRow("vab")}
+            {DisabledCellsRow("vab")}
+          </tr>
+
+          {/* Production Row */}
+          <tr>
+            <td>
+              <strong>Producción</strong>
+            </td>
+            {IntermediateUseRow("production")}
+            {DisabledCellsRow("production")}
+          </tr>
+        </tbody>
+      </Table>
     </div>
   );
 };
