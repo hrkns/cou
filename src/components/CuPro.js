@@ -1,4 +1,6 @@
 import { Table } from "react-bootstrap";
+import DisabledCells from "./DisabledCells";
+import DisabledCell from "./DisabledCell";
 
 const CuPro = ({ appValues }) => {
   const branches = appValues.useThirdBranch
@@ -39,12 +41,11 @@ const CuPro = ({ appValues }) => {
           </thead>
           <tbody>
             <tr>
-              <td></td>
-              {branches.toReversed().map((branch) => {
-                return (
-                  <td key={`usage_productionPerActivity_${branch.name}}`}></td>
-                );
-              })}
+              {DisabledCells(
+                `usage_productionPerActivity`,
+                0,
+                branches.length + 1
+              )}
               <td>
                 <strong>Producción por actividad</strong>
               </td>
@@ -69,14 +70,11 @@ const CuPro = ({ appValues }) => {
               <td>
                 <strong>Consumo Intermedio</strong>
               </td>
-              {branches.map((branch) => {
-                return (
-                  <td
-                    key={`resource_intermediateConsumption_${branch.name}}`}
-                  ></td>
-                );
-              })}
-              <td></td>
+              {DisabledCells(
+                `resource_intermediateConsumption`,
+                5,
+                branches.length + 1
+              )}
             </tr>
             <tr>
               <td></td>
@@ -86,12 +84,7 @@ const CuPro = ({ appValues }) => {
               <td>
                 <strong>Valor Agregado Bruto por Actividad</strong>
               </td>
-              {branches.map((branch) => {
-                return (
-                  <td key={`resource_vabPerActivity_${branch.name}}`}></td>
-                );
-              })}
-              <td></td>
+              {DisabledCells(`resource_vabPerActivity`, 5, branches.length + 1)}
             </tr>
             <tr>
               <td></td>
@@ -101,10 +94,7 @@ const CuPro = ({ appValues }) => {
               <td>
                 <strong>Consumo de Capital Fijo</strong>
               </td>
-              {branches.map((branch) => {
-                return <td key={`resource_ccf_${branch.name}}`}></td>;
-              })}
-              <td></td>
+              {DisabledCells(`resource_ccf`, 5, branches.length + 1)}
             </tr>
             <tr>
               <td></td>
@@ -114,12 +104,7 @@ const CuPro = ({ appValues }) => {
               <td>
                 <strong>Valor agregado neto por actividad</strong>
               </td>
-              {branches.map((branch) => {
-                return (
-                  <td key={`resource_vanPerActivity_${branch.name}}`}></td>
-                );
-              })}
-              <td></td>
+              {DisabledCells(`resource_vanPerActivity`, 5, branches.length + 1)}
             </tr>
           </tbody>
         </Table>
@@ -153,124 +138,86 @@ const CuPro = ({ appValues }) => {
           </thead>
           <tbody>
             <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("imports", 0, 5)}
               <td>
                 <strong>Importaciones de bienes y servicios</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("imports", 6, 3)}
               <td></td>
               <td></td>
             </tr>
             <tr>
               <td></td>
               <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("exports", 3, 3)}
               <td>
                 <strong>Exportaciones de bienes y servicios</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("exports", 6, 5)}
             </tr>
             <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("production", 0, 5)}
               <td>
                 <strong>Produccion</strong>
               </td>
               <td></td>
               <td></td>
               <td></td>
-              <td></td>
+              <DisabledCell />
               <td></td>
             </tr>
             <tr>
               <td></td>
-              <td></td>
+              <DisabledCell />
               <td></td>
               <td></td>
               <td></td>
               <td>
                 <strong>Consumo Intermedio</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("ci", 6, 5)}
             </tr>
             <tr>
               <td></td>
-              <td></td>
+              <DisabledCell />
               <td></td>
               <td></td>
               <td></td>
               <td>
                 <strong>Valor Agregado Bruto</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("vab", 6, 5)}
             </tr>
             <tr>
               <td></td>
-              <td></td>
+              <DisabledCell />
               <td></td>
               <td></td>
               <td></td>
               <td>
                 <strong>Consumo de Capital Fijo</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("ckf", 6, 5)}
             </tr>
             <tr>
               <td></td>
-              <td></td>
+              <DisabledCell />
               <td></td>
               <td></td>
               <td></td>
               <td>
                 <strong>Valor Agregado Neto</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("van", 6, 5)}
             </tr>
             <tr>
               <td></td>
               <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("sbsce", 3, 3)}
               <td>
                 <strong>Saldo de bienes y servicios con el exterior</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells("sbsce", 6, 5)}
             </tr>
           </tbody>
         </Table>

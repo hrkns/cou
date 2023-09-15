@@ -36,6 +36,7 @@ const App = () => {
   return (
     <div className="m-5">
       <Accordion>
+        {/* Cuenta de Producción */}
         <Accordion.Item
           eventKey="0"
           style={{
@@ -50,6 +51,7 @@ const App = () => {
           </Accordion.Body>
         </Accordion.Item>
 
+        {/* Cuenta de Generación de Ingresos */}
         <Accordion.Item
           eventKey="1"
           style={{
@@ -64,6 +66,7 @@ const App = () => {
           </Accordion.Body>
         </Accordion.Item>
 
+        {/* Cuenta de Generación de Ingresos */}
         <Accordion.Item
           eventKey="2"
           style={{
@@ -78,6 +81,7 @@ const App = () => {
           </Accordion.Body>
         </Accordion.Item>
 
+        {/* Cuenta de Asignación y Distribución del Ingreso */}
         <Accordion.Item
           eventKey="3"
           style={{
@@ -92,6 +96,7 @@ const App = () => {
           </Accordion.Body>
         </Accordion.Item>
 
+        {/* Cuenta de Utilización de Ingreso */}
         <Accordion.Item
           eventKey="4"
           style={{
@@ -106,6 +111,7 @@ const App = () => {
           </Accordion.Body>
         </Accordion.Item>
 
+        {/* Cuenta de Capital */}
         <Accordion.Item
           eventKey="5"
           style={{
@@ -120,6 +126,7 @@ const App = () => {
           </Accordion.Body>
         </Accordion.Item>
 
+        {/* Cuenta Financiera */}
         <Accordion.Item
           eventKey="6"
           style={{

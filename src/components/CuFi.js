@@ -1,4 +1,6 @@
 import { Table } from "react-bootstrap";
+import DisabledCells from "./DisabledCells";
+import DisabledCell from "./DisabledCell";
 
 const CuFi = () => {
   return (
@@ -11,18 +13,20 @@ const CuFi = () => {
       >
         <thead>
           <tr>
-            <th colSpan={5}>USOS</th>
+            <th colSpan={6}>USOS</th>
             <th rowSpan={2}>Transacciones y Otros Saldos</th>
-            <th colSpan={5}>RECURSOS</th>
+            <th colSpan={6}>RECURSOS</th>
           </tr>
           <tr>
             <th>Total</th>
             <th>Resto del Mundo</th>
             <th>SubTotal</th>
+            <th>Hogares</th>
             <th>Gobierno</th>
             <th>Sociedades</th>
             <th>Sociedades</th>
             <th>Gobierno</th>
+            <th>Hogares</th>
             <th>SubTotal</th>
             <th>Resto del Mundo</th>
             <th>Total</th>
@@ -30,11 +34,7 @@ const CuFi = () => {
         </thead>
         <tbody>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("pn", 0, 6)}
             <td>
               <strong>Préstamo Neto</strong>
             </td>
@@ -43,8 +43,10 @@ const CuFi = () => {
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
           </tr>
           <tr>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -53,18 +55,10 @@ const CuFi = () => {
             <td>
               <strong>Adquisición Neta de Activos Financieros</strong>
             </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("anaf", 7, 6)}
           </tr>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("enpf", 0, 6)}
             <td>
               <strong>Emisión Neta de pasivos financieros</strong>
             </td>
@@ -73,20 +67,22 @@ const CuFi = () => {
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
           </tr>
           <tr>
             <td></td>
+            <DisabledCell />
             <td></td>
             <td></td>
-            <td></td>
+            <DisabledCell />
             <td></td>
             <td>
               <strong>Dinero Legal y Depósitos</strong>
             </td>
             <td></td>
+            {DisabledCells("dld", 8, 2)}
             <td></td>
-            <td></td>
-            <td></td>
+            <DisabledCell />
             <td></td>
           </tr>
           <tr>
@@ -94,17 +90,20 @@ const CuFi = () => {
             <td></td>
             <td></td>
             <td></td>
+            <DisabledCell />
             <td></td>
             <td>
               <strong>Valores distintos de acciones</strong>
             </td>
+            <DisabledCell />
             <td></td>
+            <DisabledCell />
             <td></td>
-            <td></td>
-            <td></td>
+            <DisabledCell />
             <td></td>
           </tr>
           <tr>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -113,13 +112,15 @@ const CuFi = () => {
             <td>
               <strong>Préstamos y crédito comercial</strong>
             </td>
+            <DisabledCell />
             <td></td>
+            <DisabledCell />
             <td></td>
-            <td></td>
-            <td></td>
+            <DisabledCell />
             <td></td>
           </tr>
           <tr>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -129,7 +130,7 @@ const CuFi = () => {
               <strong>Acciones y otras participaciones de capital</strong>
             </td>
             <td></td>
-            <td></td>
+            {DisabledCells("aopc", 8, 2)}
             <td></td>
             <td></td>
             <td></td>

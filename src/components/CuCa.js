@@ -1,4 +1,6 @@
 import { Table } from "react-bootstrap";
+import DisabledCells from "./DisabledCells";
+import DisabledCell from "./DisabledCell";
 
 const CuCa = () => {
   return (
@@ -11,18 +13,20 @@ const CuCa = () => {
       >
         <thead>
           <tr>
-            <th colSpan={5}>USOS</th>
+            <th colSpan={6}>USOS</th>
             <th rowSpan={2}>Transacciones y Otros Saldos</th>
-            <th colSpan={5}>RECURSOS</th>
+            <th colSpan={6}>RECURSOS</th>
           </tr>
           <tr>
             <th>Total</th>
             <th>Resto del Mundo</th>
             <th>SubTotal</th>
+            <th>Hogares</th>
             <th>Gobierno</th>
             <th>Sociedades</th>
             <th>Sociedades</th>
             <th>Gobierno</th>
+            <th>Hogares</th>
             <th>SubTotal</th>
             <th>Resto del Mundo</th>
             <th>Total</th>
@@ -30,26 +34,16 @@ const CuCa = () => {
         </thead>
         <tbody>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("sce", 0, 6)}
             <td>
               <strong>Saldo corriente con el exterior</strong>
             </td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("sce", 7, 4)}
             <td></td>
             <td></td>
           </tr>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("ab", 0, 6)}
             <td>
               <strong>Ahorro Bruto</strong>
             </td>
@@ -57,69 +51,55 @@ const CuCa = () => {
             <td></td>
             <td></td>
             <td></td>
+            <DisabledCell />
             <td></td>
           </tr>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("tkr", 0, 6)}
             <td>
               <strong>Transferencias de capital recibidas</strong>
             </td>
             <td></td>
+            {DisabledCells("tkr", 8, 2)}
             <td></td>
-            <td></td>
-            <td></td>
+            <DisabledCell />
             <td></td>
           </tr>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("tke", 0, 6)}
             <td>
               <strong>Transferencias de capital efectuadas</strong>
             </td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("tke", 7, 4)}
             <td></td>
             <td></td>
           </tr>
           <tr>
             <td></td>
+            <DisabledCell />
             <td></td>
-            <td></td>
+            <DisabledCell />
             <td></td>
             <td></td>
             <td>
               <strong>Formacion bruta de capital fijo</strong>
             </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("fbkf", 7, 6)}
           </tr>
           <tr>
             <td></td>
+            <DisabledCell />
             <td></td>
-            <td></td>
+            <DisabledCell />
             <td></td>
             <td></td>
             <td>
               <strong>Variación de existencias</strong>
             </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("ve", 7, 6)}
           </tr>
           <tr>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -128,11 +108,7 @@ const CuCa = () => {
             <td>
               <strong>Préstamo Neto</strong>
             </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            {DisabledCells("pn", 7, 6)}
           </tr>
         </tbody>
       </Table>

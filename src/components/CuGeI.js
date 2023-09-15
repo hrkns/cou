@@ -1,4 +1,6 @@
 import { Table } from "react-bootstrap";
+import DisabledCells from "./DisabledCells";
+import DisabledCell from "./DisabledCell";
 
 const CuGei = ({ appValues }) => {
   const branches = appValues.useThirdBranch
@@ -39,10 +41,7 @@ const CuGei = ({ appValues }) => {
           </thead>
           <tbody>
             <tr>
-              <td></td>
-              {branches.toReversed().map((branch) => {
-                return <td key={`usage_tax_${branch.name}}`}></td>;
-              })}
+              {DisabledCells(`resource_tax`, 0, branches.length + 1)}
               <td>
                 <strong>Valor Agregado Bruto por actividad</strong>
               </td>
@@ -59,10 +58,7 @@ const CuGei = ({ appValues }) => {
               <td>
                 <strong>Remuneración de Asalariados</strong>
               </td>
-              {branches.map((branch) => {
-                return <td key={`resource_ra_${branch.name}}`}></td>;
-              })}
-              <td></td>
+              {DisabledCells(`usage_ra_`, 5, branches.length + 1)}
             </tr>
             <tr>
               <td></td>
@@ -72,10 +68,7 @@ const CuGei = ({ appValues }) => {
               <td>
                 <strong>Impuestos.- Subsidios sobre la Producción</strong>
               </td>
-              {branches.map((branch) => {
-                return <td key={`resource_tax_${branch.name}}`}></td>;
-              })}
-              <td></td>
+              {DisabledCells(`usage_tax_`, 5, branches.length + 1)}
             </tr>
             <tr>
               <td></td>
@@ -85,10 +78,7 @@ const CuGei = ({ appValues }) => {
               <td>
                 <strong>Consumo de Capital Fijo</strong>
               </td>
-              {branches.map((branch) => {
-                return <td key={`resource_eeb_${branch.name}}`}></td>;
-              })}
-              <td></td>
+              {DisabledCells(`usage_eeb_`, 5, branches.length + 1)}
             </tr>
           </tbody>
         </Table>
@@ -122,94 +112,65 @@ const CuGei = ({ appValues }) => {
           </thead>
           <tbody>
             <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells(`sbsce`, 0, 5)}
               <td>
                 <strong>Saldo de bienes y servicios con el exterior</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells(`sbsce`, 6, 3)}
               <td></td>
               <td></td>
             </tr>
             <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells(`vab`, 0, 5)}
               <td>
                 <strong>Valor Agregado Bruto</strong>
               </td>
               <td></td>
               <td></td>
               <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells(`sbsce`, 9, 2)}
             </tr>
             <tr>
               <td></td>
-              <td></td>
+              <DisabledCell />
               <td></td>
               <td></td>
               <td></td>
               <td>
                 <strong>Remuneración de Asalariados</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells(`ra`, 6, 5)}
             </tr>
             <tr>
               <td></td>
+              <DisabledCell />
               <td></td>
-              <td></td>
-              <td></td>
+              <DisabledCell />
               <td></td>
               <td>
                 <strong>Impuestos.- Subsidios sobre la Producción</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells(`ra`, 6, 5)}
             </tr>
             <tr>
               <td></td>
-              <td></td>
+              <DisabledCell />
               <td></td>
               <td></td>
               <td></td>
               <td>
                 <strong>Excedente de Explotación Bruto</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells(`ra`, 6, 5)}
             </tr>
             <tr>
               <td></td>
               <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells(`sbsce`, 2, 3)}
               <td>
                 <strong>Saldo de bienes y servicios con el exterior</strong>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {DisabledCells(`ra`, 6, 5)}
             </tr>
           </tbody>
         </Table>

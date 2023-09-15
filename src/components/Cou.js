@@ -4,6 +4,8 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import React, { useEffect, useState } from "react";
 import { getItem, setItem } from "../shared/db";
+import DisabledCell from "./DisabledCell";
+import DisabledCells from "./DisabledCells";
 
 const branchRow = {
   intermediateUse: {
@@ -123,7 +125,7 @@ const Cou = ({ appValues, setAppValues }) => {
       </td>,
       // no gov column is used when row is gov, tax or een
       rowKey === "gov" || rowKey === "tax" || rowKey === "een" ? (
-        <td className="no-use" key={`${rowKey}4`}></td>
+        <DisabledCell key={`${rowKey}4`} />
       ) : (
         <td key={`${rowKey}4`}>
           <input
@@ -180,7 +182,7 @@ const Cou = ({ appValues, setAppValues }) => {
           />
         </td>
       ) : (
-        <td className="no-use" key={`${rowKey}8`}></td>
+        <DisabledCell key={`${rowKey}8`} />
       ),
       <td key={`${rowKey}9`}>
         <input
@@ -227,15 +229,7 @@ const Cou = ({ appValues, setAppValues }) => {
 
   // cells used for second half of the bottom rows in the right side of the table
   const DisabledCellsRow = (rowKey) => {
-    return [
-      <td className="no-use" key={`${rowKey}6`}></td>,
-      <td className="no-use" key={`${rowKey}7`}></td>,
-      <td className="no-use" key={`${rowKey}8`}></td>,
-      <td className="no-use" key={`${rowKey}9`}></td>,
-      <td className="no-use" key={`${rowKey}10`}></td>,
-      <td className="no-use" key={`${rowKey}11`}></td>,
-      <td className="no-use" key={`${rowKey}12`}></td>,
-    ];
+    return DisabledCells(rowKey, 6, 7);
   };
 
   const TotalCell = (rowKey) => {
@@ -1614,12 +1608,7 @@ const Cou = ({ appValues, setAppValues }) => {
             <td>
               <strong>Serv. Gob.</strong>
             </td>
-            <td className="no-use"></td>
-            <td className="no-use"></td>
-            <td className="no-use"></td>
-            <td className="no-use"></td>
-            <td className="no-use"></td>
-            <td className="no-use"></td>
+            {DisabledCells("gov", 6, 6)}
             <td>
               <input
                 className="invisible-input"
@@ -1630,9 +1619,7 @@ const Cou = ({ appValues, setAppValues }) => {
                 }}
               />
             </td>
-            <td className="no-use"></td>
-            <td className="no-use"></td>
-            <td className="no-use"></td>
+            {DisabledCells("gov", 8, 3)}
             <td>
               <input
                 className="invisible-input"
