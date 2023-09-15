@@ -1,5 +1,6 @@
+import _ from "lodash";
 import React, { useEffect, useState } from "react";
-import { Accordion } from "react-bootstrap";
+import { Accordion, Col, Container, Form, Row } from "react-bootstrap";
 import "./App.css";
 import Cou from "./components/Cou";
 import Footer from "./components/Footer";
@@ -23,9 +24,7 @@ const App = () => {
       {
         name: "Rama 3",
       },
-    ],
-    useThirdBranch: true,
-    useGov: true,
+    ]
   };
   const [appValues, setAppValues] = useState(localAppValues);
 
@@ -35,6 +34,43 @@ const App = () => {
 
   return (
     <div className="m-5">
+      <hr></hr>
+
+      <Row>
+        <Col sm={2}>
+          <Form>
+            <Form.Group className="m-1">
+              <Form.Label>
+                <strong>Cantidad de ramas (minimo 1, maximo 4)</strong>
+              </Form.Label>
+              <Form.Control
+                type="number"
+                value={appValues.branches.length}
+                min={1}
+                max={4}
+                onChange={(e) => {
+                  const newBranchesAmount = parseInt(e.target.value);
+                  if (newBranchesAmount > 0 && newBranchesAmount < 5) {
+                    appValues.branches = appValues.branches.slice(
+                      0,
+                      newBranchesAmount
+                    );
+                    while (appValues.branches.length < newBranchesAmount) {
+                      appValues.branches.push({
+                        name: `Rama ${appValues.branches.length + 1}`,
+                      });
+                    }
+                    setAppValues(_.cloneDeep(appValues));
+                  }
+                }}
+              />
+            </Form.Group>
+          </Form>
+        </Col>
+      </Row>
+
+      <hr></hr>
+
       <Accordion>
         {/* Cuenta de Producción */}
         <Accordion.Item

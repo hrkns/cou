@@ -3,10 +3,7 @@ import DisabledCells from "./DisabledCells";
 import DisabledCell from "./DisabledCell";
 
 const CuPro = ({ appValues }) => {
-  const branches = appValues.useThirdBranch
-    ? appValues.branches
-    : appValues.branches.slice(0, 2);
-  const branchesAmount = branches.length;
+  const branches = appValues.branches;
 
   return (
     <div>
@@ -20,9 +17,9 @@ const CuPro = ({ appValues }) => {
         >
           <thead>
             <tr>
-              <th colSpan={branchesAmount + 1}>USOS</th>
+              <th colSpan={branches.length + 1}>USOS</th>
               <th rowSpan={2}>Transacciones y otros saldos</th>
-              <th colSpan={branchesAmount + 1}>RECURSOS</th>
+              <th colSpan={branches.length + 1}>RECURSOS</th>
             </tr>
             <tr>
               <th>Total</th>
