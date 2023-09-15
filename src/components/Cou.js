@@ -9,9 +9,9 @@ import DisabledCells from "./DisabledCells";
 
 const branchRow = {
   intermediateUse: {
-    firstBranch: null,
-    secondBranch: null,
-    thirdBranch: null,
+    branch1: null,
+    branch2: null,
+    branch3: null,
     gov: null,
     st: null,
   },
@@ -30,30 +30,30 @@ const Cou = ({ appValues, setAppValues }) => {
   // TODO: change to dynamics branch amount: an input for defining the amount
   // of branches (1 or more) and from there generate dinamically the corresponding
   // row and columns, modifying also the corresponding calculations
-  const [firstBranchName, setFirstBranchName] = useState("Rama 1");
+  const [branch1Name, setBranch1Name] = useState("Rama 1");
   useEffect(() => {
-    appValues.branches[0].name = firstBranchName;
+    appValues.branches[0].name = branch1Name;
     setAppValues(_.cloneDeep(appValues));
-  }, [firstBranchName]);
+  }, [branch1Name]);
 
-  const [secondBranchName, setSecondBranchName] = useState("Rama 2");
+  const [branch2Name, setBranch2Name] = useState("Rama 2");
   useEffect(() => {
-    appValues.branches[1].name = secondBranchName;
+    appValues.branches[1].name = branch2Name;
     setAppValues(_.cloneDeep(appValues));
-  }, [secondBranchName]);
+  }, [branch2Name]);
 
-  const [thirdBranchName, setThirdBranchName] = useState("Rama 3");
+  const [branch3Name, setBranch3Name] = useState("Rama 3");
   useEffect(() => {
     if (appValues.branches[2]) {
-      appValues.branches[2].name = thirdBranchName;
+      appValues.branches[2].name = branch3Name;
       setAppValues(_.cloneDeep(appValues));
     }
-  }, [thirdBranchName]);
+  }, [branch3Name]);
 
   const emptyCou = {
-    firstBranch: _.cloneDeep(branchRow),
-    secondBranch: _.cloneDeep(branchRow),
-    thirdBranch: _.cloneDeep(branchRow),
+    branch1: _.cloneDeep(branchRow),
+    branch2: _.cloneDeep(branchRow),
+    branch3: _.cloneDeep(branchRow),
     gov: _.cloneDeep(branchRow),
     imports: _.cloneDeep(branchRow),
     totalUses: _.cloneDeep(branchRow),
@@ -65,9 +65,7 @@ const Cou = ({ appValues, setAppValues }) => {
     production: _.cloneDeep(_.pick(branchRow, ["intermediateUse"])),
   };
   const [couValues, setCouValues] = useState(getItem("cou") || emptyCou);
-  const [useThirdBranch, setUseThirdBranch] = useState(
-    appValues.useThirdBranch
-  );
+  const [usebranch3, setUsebranch3] = useState(appValues.usebranch3);
   const [useGov, setUseGov] = useState(appValues.useGov);
 
   // save in the internal component variable and the browser local storage so the user
@@ -88,11 +86,11 @@ const Cou = ({ appValues, setAppValues }) => {
         <input
           className="invisible-input"
           type="number"
-          value={couValues[rowKey].intermediateUse.firstBranch ?? ""}
+          value={couValues[rowKey].intermediateUse.branch1 ?? ""}
           onChange={(e) => {
             handleCouValueChange(
               e.target.value,
-              rowKey + ".intermediateUse.firstBranch"
+              rowKey + ".intermediateUse.branch1"
             );
           }}
         />
@@ -101,11 +99,11 @@ const Cou = ({ appValues, setAppValues }) => {
         <input
           className="invisible-input"
           type="number"
-          value={couValues[rowKey].intermediateUse.secondBranch ?? ""}
+          value={couValues[rowKey].intermediateUse.branch2 ?? ""}
           onChange={(e) => {
             handleCouValueChange(
               e.target.value,
-              rowKey + ".intermediateUse.secondBranch"
+              rowKey + ".intermediateUse.branch2"
             );
           }}
         />
@@ -114,11 +112,11 @@ const Cou = ({ appValues, setAppValues }) => {
         <input
           className="invisible-input"
           type="number"
-          value={couValues[rowKey].intermediateUse.thirdBranch ?? ""}
+          value={couValues[rowKey].intermediateUse.branch3 ?? ""}
           onChange={(e) => {
             handleCouValueChange(
               e.target.value,
-              rowKey + ".intermediateUse.thirdBranch"
+              rowKey + ".intermediateUse.branch3"
             );
           }}
         />
@@ -302,18 +300,18 @@ const Cou = ({ appValues, setAppValues }) => {
 
     // compute from intermediate use cells
     if (
-      hasContent(couValues[rowKey].intermediateUse.firstBranch) &&
-      hasContent(couValues[rowKey].intermediateUse.secondBranch) &&
-      hasContent(couValues[rowKey].intermediateUse.thirdBranch) &&
+      hasContent(couValues[rowKey].intermediateUse.branch1) &&
+      hasContent(couValues[rowKey].intermediateUse.branch2) &&
+      hasContent(couValues[rowKey].intermediateUse.branch3) &&
       // gov column cell is only required when the row is not tax or een
       (hasContent(couValues[rowKey].intermediateUse.gov) ||
         rowKey === "tax" ||
         rowKey === "een")
     ) {
       val = _.toString(
-        _.toNumber(couValues[rowKey].intermediateUse.firstBranch) +
-          _.toNumber(couValues[rowKey].intermediateUse.secondBranch) +
-          _.toNumber(couValues[rowKey].intermediateUse.thirdBranch) +
+        _.toNumber(couValues[rowKey].intermediateUse.branch1) +
+          _.toNumber(couValues[rowKey].intermediateUse.branch2) +
+          _.toNumber(couValues[rowKey].intermediateUse.branch3) +
           (rowKey === "tax" || rowKey === "een"
             ? 0
             : _.toNumber(couValues[rowKey].intermediateUse.gov))
@@ -324,9 +322,9 @@ const Cou = ({ appValues, setAppValues }) => {
     if (!hasContent(val)) {
       // try to compute from other column st values
       const colEquationFactors = {
-        firstBranch: couValues.firstBranch.intermediateUse.st,
-        secondBranch: couValues.secondBranch.intermediateUse.st,
-        thirdBranch: couValues.thirdBranch.intermediateUse.st,
+        branch1: couValues.branch1.intermediateUse.st,
+        branch2: couValues.branch2.intermediateUse.st,
+        branch3: couValues.branch3.intermediateUse.st,
         imports: couValues.imports.intermediateUse.st,
         totalUses: couValues.totalUses.intermediateUse.st,
       };
@@ -335,17 +333,17 @@ const Cou = ({ appValues, setAppValues }) => {
       if (equationIsSolvable(noValueProps, rowKey)) {
         // build equation expression
         const leftSide =
-          (noValueProps[0] === "firstBranch"
+          (noValueProps[0] === "branch1"
             ? "x"
-            : surround(colEquationFactors.firstBranch)) +
+            : surround(colEquationFactors.branch1)) +
           " + " +
-          (noValueProps[0] === "secondBranch"
+          (noValueProps[0] === "branch2"
             ? "x"
-            : surround(colEquationFactors.secondBranch)) +
+            : surround(colEquationFactors.branch2)) +
           " + " +
-          (noValueProps[0] === "thirdBranch"
+          (noValueProps[0] === "branch3"
             ? "x"
-            : surround(colEquationFactors.thirdBranch)) +
+            : surround(colEquationFactors.branch3)) +
           " + " +
           (noValueProps[0] === "imports"
             ? "x"
@@ -359,13 +357,7 @@ const Cou = ({ appValues, setAppValues }) => {
     // if still no value was computed, then try to compute from the other st and the total
     if (
       !hasContent(val) &&
-      [
-        "firstBranch",
-        "secondBranch",
-        "thirdBranch",
-        "imports",
-        "totalUses",
-      ].includes(rowKey)
+      ["branch1", "branch2", "branch3", "imports", "totalUses"].includes(rowKey)
     ) {
       // compute from the other st and the total
       const stAndTotalEquationFactors = {
@@ -389,15 +381,15 @@ const Cou = ({ appValues, setAppValues }) => {
 
     // compute from intermediate use cells
     if (
-      hasContent(couValues.firstBranch.intermediateUse[columnKey]) &&
-      hasContent(couValues.secondBranch.intermediateUse[columnKey]) &&
-      hasContent(couValues.thirdBranch.intermediateUse[columnKey]) &&
+      hasContent(couValues.branch1.intermediateUse[columnKey]) &&
+      hasContent(couValues.branch2.intermediateUse[columnKey]) &&
+      hasContent(couValues.branch3.intermediateUse[columnKey]) &&
       hasContent(couValues.imports.intermediateUse[columnKey])
     ) {
       val = _.toString(
-        _.toNumber(couValues.firstBranch.intermediateUse[columnKey]) +
-          _.toNumber(couValues.secondBranch.intermediateUse[columnKey]) +
-          _.toNumber(couValues.thirdBranch.intermediateUse[columnKey]) +
+        _.toNumber(couValues.branch1.intermediateUse[columnKey]) +
+          _.toNumber(couValues.branch2.intermediateUse[columnKey]) +
+          _.toNumber(couValues.branch3.intermediateUse[columnKey]) +
           _.toNumber(couValues.imports.intermediateUse[columnKey])
       );
     }
@@ -422,9 +414,9 @@ const Cou = ({ appValues, setAppValues }) => {
     if (!hasContent(val)) {
       // try to compute from other row total use values
       const rowEquationFactors = {
-        firstBranch: couValues.totalUses.intermediateUse.firstBranch,
-        secondBranch: couValues.totalUses.intermediateUse.secondBranch,
-        thirdBranch: couValues.totalUses.intermediateUse.thirdBranch,
+        branch1: couValues.totalUses.intermediateUse.branch1,
+        branch2: couValues.totalUses.intermediateUse.branch2,
+        branch3: couValues.totalUses.intermediateUse.branch3,
         gov: couValues.totalUses.intermediateUse.gov,
         st: couValues.totalUses.intermediateUse.st,
       };
@@ -433,17 +425,17 @@ const Cou = ({ appValues, setAppValues }) => {
       if (equationIsSolvable(noValueProps, columnKey)) {
         // build equation expression
         const leftSide =
-          (noValueProps[0] === "firstBranch"
+          (noValueProps[0] === "branch1"
             ? "x"
-            : surround(rowEquationFactors.firstBranch)) +
+            : surround(rowEquationFactors.branch1)) +
           " + " +
-          (noValueProps[0] === "secondBranch"
+          (noValueProps[0] === "branch2"
             ? "x"
-            : surround(rowEquationFactors.secondBranch)) +
+            : surround(rowEquationFactors.branch2)) +
           " + " +
-          (noValueProps[0] === "thirdBranch"
+          (noValueProps[0] === "branch3"
             ? "x"
-            : surround(rowEquationFactors.thirdBranch)) +
+            : surround(rowEquationFactors.branch3)) +
           " + " +
           (noValueProps[0] === "gov" ? "x" : surround(rowEquationFactors.gov));
         const rightSide =
@@ -501,9 +493,9 @@ const Cou = ({ appValues, setAppValues }) => {
     if (!hasContent(val)) {
       // try to compute from other row vab values
       const rowEquationFactors = {
-        firstBranch: couValues.vab.intermediateUse.firstBranch,
-        secondBranch: couValues.vab.intermediateUse.secondBranch,
-        thirdBranch: couValues.vab.intermediateUse.thirdBranch,
+        branch1: couValues.vab.intermediateUse.branch1,
+        branch2: couValues.vab.intermediateUse.branch2,
+        branch3: couValues.vab.intermediateUse.branch3,
         gov: couValues.vab.intermediateUse.gov,
         st: couValues.vab.intermediateUse.st,
       };
@@ -512,17 +504,17 @@ const Cou = ({ appValues, setAppValues }) => {
       if (equationIsSolvable(noValueProps, columnKey)) {
         // build equation expression
         const leftSide =
-          (noValueProps[0] === "firstBranch"
+          (noValueProps[0] === "branch1"
             ? "x"
-            : surround(rowEquationFactors.firstBranch)) +
+            : surround(rowEquationFactors.branch1)) +
           " + " +
-          (noValueProps[0] === "secondBranch"
+          (noValueProps[0] === "branch2"
             ? "x"
-            : surround(rowEquationFactors.secondBranch)) +
+            : surround(rowEquationFactors.branch2)) +
           " + " +
-          (noValueProps[0] === "thirdBranch"
+          (noValueProps[0] === "branch3"
             ? "x"
-            : surround(rowEquationFactors.thirdBranch)) +
+            : surround(rowEquationFactors.branch3)) +
           " + " +
           (noValueProps[0] === "gov" ? "x" : surround(rowEquationFactors.gov));
         const rightSide =
@@ -553,9 +545,9 @@ const Cou = ({ appValues, setAppValues }) => {
     if (!hasContent(val)) {
       // try to compute from other row total use values
       const rowEquationFactors = {
-        firstBranch: couValues.production.intermediateUse.firstBranch,
-        secondBranch: couValues.production.intermediateUse.secondBranch,
-        thirdBranch: couValues.production.intermediateUse.thirdBranch,
+        branch1: couValues.production.intermediateUse.branch1,
+        branch2: couValues.production.intermediateUse.branch2,
+        branch3: couValues.production.intermediateUse.branch3,
         gov: couValues.production.intermediateUse.gov,
         st: couValues.production.intermediateUse.st,
       };
@@ -564,17 +556,17 @@ const Cou = ({ appValues, setAppValues }) => {
       if (equationIsSolvable(noValueProps, columnKey)) {
         // build equation expression
         const leftSide =
-          (noValueProps[0] === "firstBranch"
+          (noValueProps[0] === "branch1"
             ? "x"
-            : surround(rowEquationFactors.firstBranch)) +
+            : surround(rowEquationFactors.branch1)) +
           " + " +
-          (noValueProps[0] === "secondBranch"
+          (noValueProps[0] === "branch2"
             ? "x"
-            : surround(rowEquationFactors.secondBranch)) +
+            : surround(rowEquationFactors.branch2)) +
           " + " +
-          (noValueProps[0] === "thirdBranch"
+          (noValueProps[0] === "branch3"
             ? "x"
-            : surround(rowEquationFactors.thirdBranch)) +
+            : surround(rowEquationFactors.branch3)) +
           " + " +
           (noValueProps[0] === "gov" ? "x" : surround(rowEquationFactors.gov));
         const rightSide =
@@ -622,9 +614,9 @@ const Cou = ({ appValues, setAppValues }) => {
     if (!hasContent(val)) {
       // try to compute from other column st values
       const colEquationFactors = {
-        firstBranch: couValues.firstBranch.finalUse.st,
-        secondBranch: couValues.secondBranch.finalUse.st,
-        thirdBranch: couValues.thirdBranch.finalUse.st,
+        branch1: couValues.branch1.finalUse.st,
+        branch2: couValues.branch2.finalUse.st,
+        branch3: couValues.branch3.finalUse.st,
         gov: couValues.gov.finalUse.st,
         imports: couValues.imports.finalUse.st,
         totalUses: couValues.totalUses.finalUse.st,
@@ -634,17 +626,17 @@ const Cou = ({ appValues, setAppValues }) => {
       if (equationIsSolvable(noValueProps, rowKey)) {
         // build equation expression
         const leftSide =
-          (noValueProps[0] === "firstBranch"
+          (noValueProps[0] === "branch1"
             ? "x"
-            : surround(colEquationFactors.firstBranch)) +
+            : surround(colEquationFactors.branch1)) +
           " + " +
-          (noValueProps[0] === "secondBranch"
+          (noValueProps[0] === "branch2"
             ? "x"
-            : surround(colEquationFactors.secondBranch)) +
+            : surround(colEquationFactors.branch2)) +
           " + " +
-          (noValueProps[0] === "thirdBranch"
+          (noValueProps[0] === "branch3"
             ? "x"
-            : surround(colEquationFactors.thirdBranch)) +
+            : surround(colEquationFactors.branch3)) +
           " + " +
           (noValueProps[0] === "gov" ? "x" : surround(colEquationFactors.gov)) +
           " + " +
@@ -688,16 +680,16 @@ const Cou = ({ appValues, setAppValues }) => {
     } else if (
       // for the other final total uses, the values required are gcf homes, fbk fbkf, fbk ve and exports
       // exports are not required for imports row though
-      hasContent(couValues.firstBranch.finalUse[columnKey]) &&
-      hasContent(couValues.secondBranch.finalUse[columnKey]) &&
-      hasContent(couValues.thirdBranch.finalUse[columnKey]) &&
+      hasContent(couValues.branch1.finalUse[columnKey]) &&
+      hasContent(couValues.branch2.finalUse[columnKey]) &&
+      hasContent(couValues.branch3.finalUse[columnKey]) &&
       (hasContent(couValues.imports.finalUse[columnKey]) ||
         columnKey === "exports")
     ) {
       val = _.toString(
-        _.toNumber(couValues.firstBranch.finalUse[columnKey]) +
-          _.toNumber(couValues.secondBranch.finalUse[columnKey]) +
-          _.toNumber(couValues.thirdBranch.finalUse[columnKey]) +
+        _.toNumber(couValues.branch1.finalUse[columnKey]) +
+          _.toNumber(couValues.branch2.finalUse[columnKey]) +
+          _.toNumber(couValues.branch3.finalUse[columnKey]) +
           (columnKey === "exports"
             ? 0
             : _.toNumber(couValues.imports.finalUse[columnKey]))
@@ -777,9 +769,9 @@ const Cou = ({ appValues, setAppValues }) => {
     if (!hasContent(val)) {
       // try to compute from other column total values
       const colEquationFactors = {
-        firstBranch: couValues.firstBranch.total,
-        secondBranch: couValues.secondBranch.total,
-        thirdBranch: couValues.thirdBranch.total,
+        branch1: couValues.branch1.total,
+        branch2: couValues.branch2.total,
+        branch3: couValues.branch3.total,
         gov: couValues.gov.total,
         imports: couValues.imports.total,
         totalUses: couValues.totalUses.total,
@@ -789,17 +781,17 @@ const Cou = ({ appValues, setAppValues }) => {
       if (equationIsSolvable(noValueProps, rowKey)) {
         // build equation expression
         const leftSide =
-          (noValueProps[0] === "firstBranch"
+          (noValueProps[0] === "branch1"
             ? "x"
-            : surround(colEquationFactors.firstBranch)) +
+            : surround(colEquationFactors.branch1)) +
           " + " +
-          (noValueProps[0] === "secondBranch"
+          (noValueProps[0] === "branch2"
             ? "x"
-            : surround(colEquationFactors.secondBranch)) +
+            : surround(colEquationFactors.branch2)) +
           " + " +
-          (noValueProps[0] === "thirdBranch"
+          (noValueProps[0] === "branch3"
             ? "x"
-            : surround(colEquationFactors.thirdBranch)) +
+            : surround(colEquationFactors.branch3)) +
           " + " +
           (noValueProps[0] === "gov" ? "x" : surround(colEquationFactors.gov)) +
           " + " +
@@ -818,32 +810,32 @@ const Cou = ({ appValues, setAppValues }) => {
 
   const generateTopHalfInnerCellsEquationsForRowCalculation = (rowPrefix) => {
     let equations = {
-      [rowPrefix + ".intermediateUse.firstBranch"]: [
+      [rowPrefix + ".intermediateUse.branch1"]: [
         "x",
         "+",
-        rowPrefix + ".intermediateUse.secondBranch",
+        rowPrefix + ".intermediateUse.branch2",
         "+",
-        rowPrefix + ".intermediateUse.thirdBranch",
+        rowPrefix + ".intermediateUse.branch3",
         "+",
         rowPrefix + ".intermediateUse.gov",
         "=",
         rowPrefix + ".intermediateUse.st",
       ],
-      [rowPrefix + ".intermediateUse.secondBranch"]: [
-        rowPrefix + ".intermediateUse.firstBranch",
+      [rowPrefix + ".intermediateUse.branch2"]: [
+        rowPrefix + ".intermediateUse.branch1",
         "+",
         "x",
         "+",
-        rowPrefix + ".intermediateUse.thirdBranch",
+        rowPrefix + ".intermediateUse.branch3",
         "+",
         rowPrefix + ".intermediateUse.gov",
         "=",
         rowPrefix + ".intermediateUse.st",
       ],
-      [rowPrefix + ".intermediateUse.thirdBranch"]: [
-        rowPrefix + ".intermediateUse.firstBranch",
+      [rowPrefix + ".intermediateUse.branch3"]: [
+        rowPrefix + ".intermediateUse.branch1",
         "+",
-        rowPrefix + ".intermediateUse.secondBranch",
+        rowPrefix + ".intermediateUse.branch2",
         "+",
         "x",
         "+",
@@ -852,11 +844,11 @@ const Cou = ({ appValues, setAppValues }) => {
         rowPrefix + ".intermediateUse.st",
       ],
       [rowPrefix + ".intermediateUse.gov"]: [
-        rowPrefix + ".intermediateUse.firstBranch",
+        rowPrefix + ".intermediateUse.branch1",
         "+",
-        rowPrefix + ".intermediateUse.secondBranch",
+        rowPrefix + ".intermediateUse.branch2",
         "+",
-        rowPrefix + ".intermediateUse.thirdBranch",
+        rowPrefix + ".intermediateUse.branch3",
         "+",
         "x",
         "=",
@@ -1000,32 +992,32 @@ const Cou = ({ appValues, setAppValues }) => {
 
     if (rowPrefix === "ra" || rowPrefix === "ckf") {
       equations = {
-        [rowPrefix + ".intermediateUse.firstBranch"]: [
+        [rowPrefix + ".intermediateUse.branch1"]: [
           "x",
           "+",
-          rowPrefix + ".intermediateUse.secondBranch",
+          rowPrefix + ".intermediateUse.branch2",
           "+",
-          rowPrefix + ".intermediateUse.thirdBranch",
+          rowPrefix + ".intermediateUse.branch3",
           "+",
           rowPrefix + ".intermediateUse.gov",
           "=",
           rowPrefix + ".intermediateUse.st",
         ],
-        [rowPrefix + ".intermediateUse.secondBranch"]: [
-          rowPrefix + ".intermediateUse.firstBranch",
+        [rowPrefix + ".intermediateUse.branch2"]: [
+          rowPrefix + ".intermediateUse.branch1",
           "+",
           "x",
           "+",
-          rowPrefix + ".intermediateUse.thirdBranch",
+          rowPrefix + ".intermediateUse.branch3",
           "+",
           rowPrefix + ".intermediateUse.gov",
           "=",
           rowPrefix + ".intermediateUse.st",
         ],
-        [rowPrefix + ".intermediateUse.thirdBranch"]: [
-          rowPrefix + ".intermediateUse.firstBranch",
+        [rowPrefix + ".intermediateUse.branch3"]: [
+          rowPrefix + ".intermediateUse.branch1",
           "+",
-          rowPrefix + ".intermediateUse.secondBranch",
+          rowPrefix + ".intermediateUse.branch2",
           "+",
           "x",
           "+",
@@ -1034,11 +1026,11 @@ const Cou = ({ appValues, setAppValues }) => {
           rowPrefix + ".intermediateUse.st",
         ],
         [rowPrefix + ".intermediateUse.gov"]: [
-          rowPrefix + ".intermediateUse.firstBranch",
+          rowPrefix + ".intermediateUse.branch1",
           "+",
-          rowPrefix + ".intermediateUse.secondBranch",
+          rowPrefix + ".intermediateUse.branch2",
           "+",
-          rowPrefix + ".intermediateUse.thirdBranch",
+          rowPrefix + ".intermediateUse.branch3",
           "+",
           "x",
           "=",
@@ -1047,28 +1039,28 @@ const Cou = ({ appValues, setAppValues }) => {
       };
     } else {
       equations = {
-        [rowPrefix + ".intermediateUse.firstBranch"]: [
+        [rowPrefix + ".intermediateUse.branch1"]: [
           "x",
           "+",
-          rowPrefix + ".intermediateUse.secondBranch",
+          rowPrefix + ".intermediateUse.branch2",
           "+",
-          rowPrefix + ".intermediateUse.thirdBranch",
+          rowPrefix + ".intermediateUse.branch3",
           "=",
           rowPrefix + ".intermediateUse.st",
         ],
-        [rowPrefix + ".intermediateUse.secondBranch"]: [
-          rowPrefix + ".intermediateUse.firstBranch",
+        [rowPrefix + ".intermediateUse.branch2"]: [
+          rowPrefix + ".intermediateUse.branch1",
           "+",
           "x",
           "+",
-          rowPrefix + ".intermediateUse.thirdBranch",
+          rowPrefix + ".intermediateUse.branch3",
           "=",
           rowPrefix + ".intermediateUse.st",
         ],
-        [rowPrefix + ".intermediateUse.thirdBranch"]: [
-          rowPrefix + ".intermediateUse.firstBranch",
+        [rowPrefix + ".intermediateUse.branch3"]: [
+          rowPrefix + ".intermediateUse.branch1",
           "+",
-          rowPrefix + ".intermediateUse.secondBranch",
+          rowPrefix + ".intermediateUse.branch2",
           "+",
           "x",
           "=",
@@ -1083,42 +1075,39 @@ const Cou = ({ appValues, setAppValues }) => {
   const generateTopHalfInnerCellsEquationsForColumnCalculation = (
     columnSuffix
   ) => {
-    const topSide = [
-      "firstBranch",
-      "secondBranch",
-      "thirdBranch",
-      "gov",
-    ].includes(columnSuffix)
+    const topSide = ["branch1", "branch2", "branch3", "gov"].includes(
+      columnSuffix
+    )
       ? "intermediateUse"
       : "finalUse";
 
     return {
-      ["firstBranch." + topSide + "." + columnSuffix]: [
+      ["branch1." + topSide + "." + columnSuffix]: [
         "x",
         "+",
-        "secondBranch." + topSide + "." + columnSuffix,
+        "branch2." + topSide + "." + columnSuffix,
         "+",
-        "thirdBranch." + topSide + "." + columnSuffix,
+        "branch3." + topSide + "." + columnSuffix,
         "+",
         "imports." + topSide + "." + columnSuffix,
         "=",
         "totalUses." + topSide + "." + columnSuffix,
       ],
-      ["secondBranch." + topSide + "." + columnSuffix]: [
-        "firstBranch." + topSide + "." + columnSuffix,
+      ["branch2." + topSide + "." + columnSuffix]: [
+        "branch1." + topSide + "." + columnSuffix,
         "+",
         "x",
         "+",
-        "thirdBranch." + topSide + "." + columnSuffix,
+        "branch3." + topSide + "." + columnSuffix,
         "+",
         "imports." + topSide + "." + columnSuffix,
         "=",
         "totalUses." + topSide + "." + columnSuffix,
       ],
-      ["thirdBranch." + topSide + "." + columnSuffix]: [
-        "firstBranch." + topSide + "." + columnSuffix,
+      ["branch3." + topSide + "." + columnSuffix]: [
+        "branch1." + topSide + "." + columnSuffix,
         "+",
-        "secondBranch." + topSide + "." + columnSuffix,
+        "branch2." + topSide + "." + columnSuffix,
         "+",
         "x",
         "+",
@@ -1127,11 +1116,11 @@ const Cou = ({ appValues, setAppValues }) => {
         "totalUses." + topSide + "." + columnSuffix,
       ],
       ["imports." + topSide + "." + columnSuffix]: [
-        "firstBranch." + topSide + "." + columnSuffix,
+        "branch1." + topSide + "." + columnSuffix,
         "+",
-        "secondBranch." + topSide + "." + columnSuffix,
+        "branch2." + topSide + "." + columnSuffix,
         "+",
-        "thirdBranch." + topSide + "." + columnSuffix,
+        "branch3." + topSide + "." + columnSuffix,
         "+",
         "x",
         "=",
@@ -1269,9 +1258,9 @@ const Cou = ({ appValues, setAppValues }) => {
   const computeInnerCells = () => {
     // run row-based calculations
     let hasComputed = processEquations({
-      ...generateTopHalfInnerCellsEquationsForRowCalculation("firstBranch"),
-      ...generateTopHalfInnerCellsEquationsForRowCalculation("secondBranch"),
-      ...generateTopHalfInnerCellsEquationsForRowCalculation("thirdBranch"),
+      ...generateTopHalfInnerCellsEquationsForRowCalculation("branch1"),
+      ...generateTopHalfInnerCellsEquationsForRowCalculation("branch2"),
+      ...generateTopHalfInnerCellsEquationsForRowCalculation("branch3"),
       ...generateTopHalfInnerCellsEquationsForRowCalculation("imports"),
       ...generateTopHalfInnerCellsEquationsForRowCalculation("totalUses"),
       ...generateBottomHalfInnerCellsEquationsForRowCalculation("ra"),
@@ -1283,29 +1272,17 @@ const Cou = ({ appValues, setAppValues }) => {
     // run column-based calculations
     hasComputed =
       processEquations({
-        ...generateTopHalfInnerCellsEquationsForColumnCalculation(
-          "firstBranch"
-        ),
-        ...generateTopHalfInnerCellsEquationsForColumnCalculation(
-          "secondBranch"
-        ),
-        ...generateTopHalfInnerCellsEquationsForColumnCalculation(
-          "thirdBranch"
-        ),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation("branch1"),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation("branch2"),
+        ...generateTopHalfInnerCellsEquationsForColumnCalculation("branch3"),
         ...generateTopHalfInnerCellsEquationsForColumnCalculation("gov"),
         ...generateTopHalfInnerCellsEquationsForColumnCalculation("gcfHomes"),
         ...generateTopHalfInnerCellsEquationsForColumnCalculation("fbkFbkf"),
         ...generateTopHalfInnerCellsEquationsForColumnCalculation("fbkVe"),
         ...generateTopHalfInnerCellsEquationsForColumnCalculation("exports"),
-        ...generateBottomHalfInnerCellsEquationsForColumnCalculation(
-          "firstBranch"
-        ),
-        ...generateBottomHalfInnerCellsEquationsForColumnCalculation(
-          "secondBranch"
-        ),
-        ...generateBottomHalfInnerCellsEquationsForColumnCalculation(
-          "thirdBranch"
-        ),
+        ...generateBottomHalfInnerCellsEquationsForColumnCalculation("branch1"),
+        ...generateBottomHalfInnerCellsEquationsForColumnCalculation("branch2"),
+        ...generateBottomHalfInnerCellsEquationsForColumnCalculation("branch3"),
         ...generateBottomHalfInnerCellsEquationsForColumnCalculation("gov"),
       }) || hasComputed;
 
@@ -1338,9 +1315,9 @@ const Cou = ({ appValues, setAppValues }) => {
     while (keepComputing) {
       keepComputing =
         // Intermediate Use ST
-        computeIntermediateUseSt("firstBranch") ||
-        computeIntermediateUseSt("secondBranch") ||
-        computeIntermediateUseSt("thirdBranch") ||
+        computeIntermediateUseSt("branch1") ||
+        computeIntermediateUseSt("branch2") ||
+        computeIntermediateUseSt("branch3") ||
         computeIntermediateUseSt("imports") ||
         computeIntermediateUseSt("totalUses") ||
         computeIntermediateUseSt("ra") ||
@@ -1350,27 +1327,27 @@ const Cou = ({ appValues, setAppValues }) => {
         computeIntermediateUseSt("vab") ||
         computeIntermediateUseSt("production") ||
         // Intermediate Use Total Use
-        computeIntermediateTotalUse("firstBranch") ||
-        computeIntermediateTotalUse("secondBranch") ||
-        computeIntermediateTotalUse("thirdBranch") ||
+        computeIntermediateTotalUse("branch1") ||
+        computeIntermediateTotalUse("branch2") ||
+        computeIntermediateTotalUse("branch3") ||
         computeIntermediateTotalUse("gov") ||
         computeIntermediateTotalUse("st") ||
         // VAB
-        computeVab("firstBranch") ||
-        computeVab("secondBranch") ||
-        computeVab("thirdBranch") ||
+        computeVab("branch1") ||
+        computeVab("branch2") ||
+        computeVab("branch3") ||
         computeVab("gov") ||
         computeVab("st") ||
         // Production
-        computeProduction("firstBranch") ||
-        computeProduction("secondBranch") ||
-        computeProduction("thirdBranch") ||
+        computeProduction("branch1") ||
+        computeProduction("branch2") ||
+        computeProduction("branch3") ||
         computeProduction("gov") ||
         computeProduction("st") ||
         // Final Use ST
-        computeFinalUseSt("firstBranch") ||
-        computeFinalUseSt("secondBranch") ||
-        computeFinalUseSt("thirdBranch") ||
+        computeFinalUseSt("branch1") ||
+        computeFinalUseSt("branch2") ||
+        computeFinalUseSt("branch3") ||
         computeFinalUseSt("gov") ||
         computeFinalUseSt("imports") ||
         computeFinalUseSt("totalUses") ||
@@ -1382,9 +1359,9 @@ const Cou = ({ appValues, setAppValues }) => {
         computeFinalTotalUse("exports") ||
         computeFinalTotalUse("st") ||
         // Total
-        computeTotal("firstBranch") ||
-        computeTotal("secondBranch") ||
-        computeTotal("thirdBranch") ||
+        computeTotal("branch1") ||
+        computeTotal("branch2") ||
+        computeTotal("branch3") ||
         computeTotal("gov") ||
         computeTotal("imports") ||
         computeTotal("totalUses") ||
@@ -1411,32 +1388,29 @@ const Cou = ({ appValues, setAppValues }) => {
 
   useEffect(() => {
     // third branch dependent values
-    let val = useThirdBranch ? "" : "0";
-    couValues.thirdBranch.intermediateUse.firstBranch = val;
-    couValues.thirdBranch.intermediateUse.secondBranch = val;
-    couValues.thirdBranch.intermediateUse.thirdBranch = val;
-    couValues.thirdBranch.intermediateUse.gov =
-      useThirdBranch && useGov ? "" : 0;
-    couValues.thirdBranch.intermediateUse.st = val;
-    couValues.thirdBranch.finalUse.gcfHomes = val;
-    couValues.thirdBranch.finalUse.fbkFbkf = val;
-    couValues.thirdBranch.finalUse.fbkVe = val;
-    couValues.thirdBranch.finalUse.exports = val;
-    couValues.thirdBranch.finalUse.st = val;
-    couValues.thirdBranch.total = val;
-    couValues.firstBranch.intermediateUse.thirdBranch = val;
-    couValues.secondBranch.intermediateUse.thirdBranch = val;
-    couValues.gov.intermediateUse.thirdBranch =
-      useThirdBranch && useGov ? "" : 0;
-    couValues.imports.intermediateUse.thirdBranch = val;
-    couValues.totalUses.intermediateUse.thirdBranch = val;
-    couValues.ra.intermediateUse.thirdBranch = val;
-    couValues.ckf.intermediateUse.thirdBranch = val;
-    couValues.tax.intermediateUse.thirdBranch =
-      useThirdBranch && useGov ? "" : 0;
-    couValues.een.intermediateUse.thirdBranch = val;
-    couValues.vab.intermediateUse.thirdBranch = val;
-    couValues.production.intermediateUse.thirdBranch = val;
+    let val = usebranch3 ? "" : "0";
+    couValues.branch3.intermediateUse.branch1 = val;
+    couValues.branch3.intermediateUse.branch2 = val;
+    couValues.branch3.intermediateUse.branch3 = val;
+    couValues.branch3.intermediateUse.gov = usebranch3 && useGov ? "" : 0;
+    couValues.branch3.intermediateUse.st = val;
+    couValues.branch3.finalUse.gcfHomes = val;
+    couValues.branch3.finalUse.fbkFbkf = val;
+    couValues.branch3.finalUse.fbkVe = val;
+    couValues.branch3.finalUse.exports = val;
+    couValues.branch3.finalUse.st = val;
+    couValues.branch3.total = val;
+    couValues.branch1.intermediateUse.branch3 = val;
+    couValues.branch2.intermediateUse.branch3 = val;
+    couValues.gov.intermediateUse.branch3 = usebranch3 && useGov ? "" : 0;
+    couValues.imports.intermediateUse.branch3 = val;
+    couValues.totalUses.intermediateUse.branch3 = val;
+    couValues.ra.intermediateUse.branch3 = val;
+    couValues.ckf.intermediateUse.branch3 = val;
+    couValues.tax.intermediateUse.branch3 = usebranch3 && useGov ? "" : 0;
+    couValues.een.intermediateUse.branch3 = val;
+    couValues.vab.intermediateUse.branch3 = val;
+    couValues.production.intermediateUse.branch3 = val;
 
     // gov dependent values
     val = useGov ? "" : "0";
@@ -1444,19 +1418,17 @@ const Cou = ({ appValues, setAppValues }) => {
     couValues.gov.finalUse.st = val;
     couValues.gov.total = val;
     couValues.totalUses.finalUse.gcfGov = val;
-    couValues.firstBranch.intermediateUse.gov = val;
-    couValues.secondBranch.intermediateUse.gov = val;
-    couValues.thirdBranch.intermediateUse.gov =
-      useThirdBranch && useGov ? "" : 0;
+    couValues.branch1.intermediateUse.gov = val;
+    couValues.branch2.intermediateUse.gov = val;
+    couValues.branch3.intermediateUse.gov = usebranch3 && useGov ? "" : 0;
     couValues.imports.intermediateUse.gov = val;
     couValues.totalUses.intermediateUse.gov = val;
     couValues.ra.intermediateUse.gov = val;
     couValues.ckf.intermediateUse.gov = val;
 
-    couValues.tax.intermediateUse.firstBranch = val;
-    couValues.tax.intermediateUse.secondBranch = val;
-    couValues.tax.intermediateUse.thirdBranch =
-      useThirdBranch && useGov ? "" : 0;
+    couValues.tax.intermediateUse.branch1 = val;
+    couValues.tax.intermediateUse.branch2 = val;
+    couValues.tax.intermediateUse.branch3 = usebranch3 && useGov ? "" : 0;
     couValues.tax.intermediateUse.st = val;
 
     couValues.vab.intermediateUse.gov = val;
@@ -1464,12 +1436,12 @@ const Cou = ({ appValues, setAppValues }) => {
 
     saveCouValues(couValues);
     appValues.useGov = useGov;
-    appValues.useThirdBranch = useThirdBranch;
+    appValues.usebranch3 = usebranch3;
     setAppValues(_.cloneDeep(appValues));
 
     // following es lint rule is put there for disabling warning for not placing couValues as dependency
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useThirdBranch, useGov]);
+  }, [usebranch3, useGov]);
 
   return (
     <div>
@@ -1485,8 +1457,8 @@ const Cou = ({ appValues, setAppValues }) => {
         <input
           className="form-check-input"
           type="checkbox"
-          onChange={(e) => setUseThirdBranch(e.target.checked)}
-          checked={useThirdBranch}
+          onChange={(e) => setUsebranch3(e.target.checked)}
+          checked={usebranch3}
         />
         <label className="form-check-label" htmlFor="flexCheckDefault">
           Usar Rama 3
@@ -1529,24 +1501,24 @@ const Cou = ({ appValues, setAppValues }) => {
               <input
                 className="invisible-input"
                 type="text"
-                value={firstBranchName}
-                onChange={(e) => setFirstBranchName(e.target.value)}
+                value={branch1Name}
+                onChange={(e) => setBranch1Name(e.target.value)}
               />
             </th>
             <th>
               <input
                 className="invisible-input"
                 type="text"
-                value={secondBranchName}
-                onChange={(e) => setSecondBranchName(e.target.value)}
+                value={branch2Name}
+                onChange={(e) => setBranch2Name(e.target.value)}
               />
             </th>
             <th>
               <input
                 className="invisible-input"
                 type="text"
-                value={thirdBranchName}
-                onChange={(e) => setThirdBranchName(e.target.value)}
+                value={branch3Name}
+                onChange={(e) => setBranch3Name(e.target.value)}
               />
             </th>
             <th>Serv. Gob</th>
@@ -1564,13 +1536,13 @@ const Cou = ({ appValues, setAppValues }) => {
               <input
                 className="invisible-input"
                 type="text"
-                value={firstBranchName}
-                onChange={(e) => setFirstBranchName(e.target.value)}
+                value={branch1Name}
+                onChange={(e) => setBranch1Name(e.target.value)}
               />
             </td>
-            {IntermediateUseRow("firstBranch")}
-            {FinalUseRow("firstBranch")}
-            {TotalCell("firstBranch")}
+            {IntermediateUseRow("branch1")}
+            {FinalUseRow("branch1")}
+            {TotalCell("branch1")}
           </tr>
 
           {/* Second Branch Row */}
@@ -1579,13 +1551,13 @@ const Cou = ({ appValues, setAppValues }) => {
               <input
                 className="invisible-input"
                 type="text"
-                value={secondBranchName}
-                onChange={(e) => setSecondBranchName(e.target.value)}
+                value={branch2Name}
+                onChange={(e) => setBranch2Name(e.target.value)}
               />
             </td>
-            {IntermediateUseRow("secondBranch")}
-            {FinalUseRow("secondBranch")}
-            {TotalCell("secondBranch")}
+            {IntermediateUseRow("branch2")}
+            {FinalUseRow("branch2")}
+            {TotalCell("branch2")}
           </tr>
 
           {/* Third Branch Row */}
@@ -1594,13 +1566,13 @@ const Cou = ({ appValues, setAppValues }) => {
               <input
                 className="invisible-input"
                 type="text"
-                value={thirdBranchName}
-                onChange={(e) => setThirdBranchName(e.target.value)}
+                value={branch3Name}
+                onChange={(e) => setBranch3Name(e.target.value)}
               />
             </td>
-            {IntermediateUseRow("thirdBranch")}
-            {FinalUseRow("thirdBranch")}
-            {TotalCell("thirdBranch")}
+            {IntermediateUseRow("branch3")}
+            {FinalUseRow("branch3")}
+            {TotalCell("branch3")}
           </tr>
 
           {/* Serv. Gob */}
