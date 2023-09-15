@@ -24,7 +24,7 @@ const App = () => {
       {
         name: "Rama 3",
       },
-    ]
+    ],
   };
   const [appValues, setAppValues] = useState(localAppValues);
 

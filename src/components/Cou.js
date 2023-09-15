@@ -8,7 +8,7 @@ import DisabledCell from "./DisabledCell";
 import DisabledCells from "./DisabledCells";
 import { Form, Modal } from "react-bootstrap";
 
-const Cou = ({ appValues }) => {
+const Cou = ({ appValues, setAppValues }) => {
   const branchesIndexes = _.range(1, appValues.branches.length + 1);
 
   const branchRow = {
@@ -70,6 +70,8 @@ const Cou = ({ appValues }) => {
     content = addMissingBranches(content);
     setCouValues(_.cloneDeep(content));
     setItem("cou", content);
+    appValues.cou = content;
+    setAppValues(_.cloneDeep(appValues));
   };
 
   const handleCouValueChange = (value, cellKey) => {
@@ -284,6 +286,7 @@ const Cou = ({ appValues }) => {
       algebra.parse(_.toString(rightSide))
     );
     const solution = expresion.solveFor("x");
+    console.log(`Solving equation: ${leftSide} = ${rightSide}`, { solution });
     return solution.numer / solution.denom;
   };
 
@@ -630,6 +633,8 @@ const Cou = ({ appValues }) => {
       // for the other rows, the values required are gcf homes, fbk fbkf, fbk ve and exports
       // exports are not required for imports row though
       hasContent(couValues[rowKey].finalUse.gcfHomes) &&
+      (hasContent(couValues[rowKey].finalUse.gcfGov) ||
+        rowKey !== "totalUses") &&
       hasContent(couValues[rowKey].finalUse.fbkFbkf) &&
       hasContent(couValues[rowKey].finalUse.fbkVe) &&
       (hasContent(couValues[rowKey].finalUse.exports) || rowKey === "imports")
@@ -637,6 +642,9 @@ const Cou = ({ appValues }) => {
       console.log("Computing with row values");
       val = _.toString(
         _.toNumber(couValues[rowKey].finalUse.gcfHomes) +
+          (rowKey !== "totalUses"
+            ? 0
+            : _.toNumber(couValues[rowKey].finalUse.gcfGov)) +
           _.toNumber(couValues[rowKey].finalUse.fbkFbkf) +
           _.toNumber(couValues[rowKey].finalUse.fbkVe) +
           (rowKey === "imports"
@@ -660,7 +668,7 @@ const Cou = ({ appValues }) => {
       const noValueProps = propsWithoutContent(colEquationFactors);
       // if it's detected that the only missing value from the column ones is the current row then we solve the equation
       if (equationIsSolvable(noValueProps, rowKey)) {
-        console.log("Computing with column values");
+        console.log("Computing with column values", { colEquationFactors });
         // build equation expression
         const leftSide =
           branchesIndexes
@@ -727,6 +735,7 @@ const Cou = ({ appValues }) => {
         ),
         hasContent
       ) &&
+      (hasContent(couValues.gov.finalUse[columnKey]) || columnKey !== "st") &&
       (hasContent(couValues.imports.finalUse[columnKey]) ||
         columnKey === "exports")
     ) {
@@ -737,6 +746,9 @@ const Cou = ({ appValues }) => {
             _.toNumber(couValues[`branch${idx}`]?.finalUse[columnKey])
           )
         ) +
+          (columnKey === "st"
+            ? _.toNumber(couValues.gov.finalUse[columnKey])
+            : 0) +
           (columnKey === "exports"
             ? 0
             : _.toNumber(couValues.imports.finalUse[columnKey]))
@@ -1135,7 +1147,9 @@ const Cou = ({ appValues }) => {
   };
 
   const computeInnerCells = () => {
+    console.log("Computing inner cells");
     // run row-based calculations
+    console.log("Running row-based calculations");
     let hasComputed = processEquations({
       ...branchesIndexes.reduce((acc, idx) => {
         acc = {
@@ -1155,6 +1169,7 @@ const Cou = ({ appValues }) => {
     });
 
     // run column-based calculations
+    console.log("Running column-based calculations");
     hasComputed =
       processEquations({
         ...branchesIndexes.reduce((acc, idx) => {
@@ -1184,17 +1199,26 @@ const Cou = ({ appValues }) => {
       }) || hasComputed;
 
     // assign value gcf of government if required
+    console.log("Assigning value gcf of government if required");
     if (
-      (_.isNil(couValues.gov.finalUse.gcfGov) ||
-        couValues.gov.finalUse.gcfGov === "") &&
-      ((!_.isNil(couValues.gov.finalUse.st) &&
-        couValues.gov.finalUse.st !== "") ||
-        (!_.isNil(couValues.gov.total) && couValues.gov.total !== ""))
+      !hasContent(couValues.gov.finalUse.gcfGov) &&
+      (hasContent(couValues.gov.finalUse.st) ||
+        hasContent(couValues.gov.total) ||
+        hasContent(couValues.production.intermediateUse.gov))
     ) {
-      const val =
-        _.isNil(couValues.gov.finalUse.st) || couValues.gov.finalUse.st === ""
-          ? couValues.gov.total
-          : couValues.gov.finalUse.st;
+      let val;
+      console.log(
+        couValues.gov.finalUse.st,
+        couValues.gov.total,
+        couValues.production.intermediateUse.gov
+      );
+      if (hasContent(couValues.gov.finalUse.st)) {
+        val = couValues.gov.finalUse.st;
+      } else if (hasContent(couValues.gov.total)) {
+        val = couValues.gov.total;
+      } else if (hasContent(couValues.production.intermediateUse.gov)) {
+        val = couValues.production.intermediateUse.gov;
+      }
       hasComputed = shouldCompute(val, "gov.finalUse.gcfGov");
     }
 
@@ -1219,7 +1243,7 @@ const Cou = ({ appValues }) => {
     // sometimes lead to contradictory values which causes infinite looping
     // the app is still not good enough for detecting which values are causing the contradiction
     // so we just use a limit, this (TODO) should be fixed in future versions
-    let maxAmountOfIterations = 1000;
+    let maxAmountOfIterations = 50;
 
     console.log({ couValues });
 

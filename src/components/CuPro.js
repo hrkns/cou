@@ -5,6 +5,8 @@ import DisabledCell from "./DisabledCell";
 const CuPro = ({ appValues }) => {
   const branches = appValues.branches;
 
+  console.log(">>>>>", appValues.cou);
+
   return (
     <div>
       <div>
