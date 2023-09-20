@@ -87,7 +87,6 @@ const App = () => {
             <Cou appValues={appValues} setAppValues={setAppValues} />
           </Accordion.Body>
         </Accordion.Item>
-
         {/* Cuenta de Generación de Ingresos */}
         <Accordion.Item
           eventKey="1"
@@ -102,81 +101,86 @@ const App = () => {
             <CuPro appValues={appValues} setAppValues={setAppValues} />
           </Accordion.Body>
         </Accordion.Item>
-
         {/* Cuenta de Generación de Ingresos */}
-        <Accordion.Item
-          eventKey="2"
-          style={{
-            overflowX: "auto",
-          }}
-        >
-          <Accordion.Header>
-            <h1>Cuenta de Generación de Ingresos</h1>
-          </Accordion.Header>
-          <Accordion.Body>
-            <CuGeI appValues={appValues} setAppValues={setAppValues} />
-          </Accordion.Body>
-        </Accordion.Item>
-
+        {false && (
+          <Accordion.Item
+            eventKey="2"
+            style={{
+              overflowX: "auto",
+            }}
+          >
+            <Accordion.Header>
+              <h1>Cuenta de Generación de Ingresos</h1>
+            </Accordion.Header>
+            <Accordion.Body>
+              <CuGeI appValues={appValues} setAppValues={setAppValues} />
+            </Accordion.Body>
+          </Accordion.Item>
+        )}
         {/* Cuenta de Asignación y Distribución del Ingreso */}
-        <Accordion.Item
-          eventKey="3"
-          style={{
-            overflowX: "auto",
-          }}
-        >
-          <Accordion.Header>
-            <h1>Cuenta de Asignación y Distribución del Ingreso</h1>
-          </Accordion.Header>
-          <Accordion.Body>
-            <CuADI appValues={appValues} setAppValues={setAppValues} />
-          </Accordion.Body>
-        </Accordion.Item>
-
+        {false && (
+          <Accordion.Item
+            eventKey="3"
+            style={{
+              overflowX: "auto",
+            }}
+          >
+            <Accordion.Header>
+              <h1>Cuenta de Asignación y Distribución del Ingreso</h1>
+            </Accordion.Header>
+            <Accordion.Body>
+              <CuADI appValues={appValues} setAppValues={setAppValues} />
+            </Accordion.Body>
+          </Accordion.Item>
+        )}
         {/* Cuenta de Utilización de Ingreso */}
-        <Accordion.Item
-          eventKey="4"
-          style={{
-            overflowX: "auto",
-          }}
-        >
-          <Accordion.Header>
-            <h1>Cuenta de Utilización del Ingreso</h1>
-          </Accordion.Header>
-          <Accordion.Body>
-            <CUI appValues={appValues} setAppValues={setAppValues} />
-          </Accordion.Body>
-        </Accordion.Item>
-
+        {false && (
+          <Accordion.Item
+            eventKey="4"
+            style={{
+              overflowX: "auto",
+            }}
+          >
+            <Accordion.Header>
+              <h1>Cuenta de Utilización del Ingreso</h1>
+            </Accordion.Header>
+            <Accordion.Body>
+              <CUI appValues={appValues} setAppValues={setAppValues} />
+            </Accordion.Body>
+          </Accordion.Item>
+        )}
         {/* Cuenta de Capital */}
-        <Accordion.Item
-          eventKey="5"
-          style={{
-            overflowX: "auto",
-          }}
-        >
-          <Accordion.Header>
-            <h1>Cuenta de Capital</h1>
-          </Accordion.Header>
-          <Accordion.Body>
-            <CuCa appValues={appValues} setAppValues={setAppValues} />
-          </Accordion.Body>
-        </Accordion.Item>
-
+        {false && (
+          <Accordion.Item
+            eventKey="5"
+            style={{
+              overflowX: "auto",
+            }}
+          >
+            <Accordion.Header>
+              <h1>Cuenta de Capital</h1>
+            </Accordion.Header>
+            <Accordion.Body>
+              <CuCa appValues={appValues} setAppValues={setAppValues} />
+            </Accordion.Body>
+          </Accordion.Item>
+        )}
         {/* Cuenta Financiera */}
-        <Accordion.Item
-          eventKey="6"
-          style={{
-            overflowX: "auto",
-          }}
-        >
-          <Accordion.Header>
-            <h1>Cuenta Financiera</h1>
-          </Accordion.Header>
-          <Accordion.Body>
-            <CuFi appValues={appValues} setAppValues={setAppValues} />
-          </Accordion.Body>
-        </Accordion.Item>
+        {false && (
+          <Accordion.Item
+            eventKey="6"
+            style={{
+              overflowX: "auto",
+            }}
+          >
+            <Accordion.Header>
+              <h1>Cuenta Financiera</h1>
+            </Accordion.Header>
+            <Accordion.Body>
+              <CuFi appValues={appValues} setAppValues={setAppValues} />
+            </Accordion.Body>
+          </Accordion.Item>
+        )}
       </Accordion>
 
       {/* Pie de página */}

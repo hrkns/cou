@@ -858,119 +858,121 @@ const CuPro = ({ appValues }) => {
           </Modal>
         )}
       </div>
-      <div>
-        <h2>Por Sectores Institucionales</h2>
-        <Table
-          striped
-          bordered
-          hover
-          className="text-center align-middle mt-3 custom-table"
-        >
-          <thead>
-            <tr>
-              <th colSpan={5}>USOS</th>
-              <th rowSpan={2}>Transacciones y Otros Saldos</th>
-              <th colSpan={5}>RECURSOS</th>
-            </tr>
-            <tr>
-              <th>Total</th>
-              <th>Resto del Mundo</th>
-              <th>SubTotal</th>
-              <th>Gobierno</th>
-              <th>Sociedades</th>
-              <th>Sociedades</th>
-              <th>Gobierno</th>
-              <th>SubTotal</th>
-              <th>Resto del Mundo</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              {DisabledCells("imports", 0, 5)}
-              <td>
-                <strong>Importaciones de bienes y servicios</strong>
-              </td>
-              {DisabledCells("imports", 6, 3)}
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              {DisabledCells("exports", 3, 3)}
-              <td>
-                <strong>Exportaciones de bienes y servicios</strong>
-              </td>
-              {DisabledCells("exports", 6, 5)}
-            </tr>
-            <tr>
-              {DisabledCells("production", 0, 5)}
-              <td>
-                <strong>Produccion</strong>
-              </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <DisabledCell />
-              <td></td>
-            </tr>
-            <tr>
-              <td></td>
-              <DisabledCell />
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>
-                <strong>Consumo Intermedio</strong>
-              </td>
-              {DisabledCells("ci", 6, 5)}
-            </tr>
-            <tr>
-              <td></td>
-              <DisabledCell />
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>
-                <strong>Valor Agregado Bruto</strong>
-              </td>
-              {DisabledCells("vab", 6, 5)}
-            </tr>
-            <tr>
-              <td></td>
-              <DisabledCell />
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>
-                <strong>Consumo de Capital Fijo</strong>
-              </td>
-              {DisabledCells("ckf", 6, 5)}
-            </tr>
-            <tr>
-              <td></td>
-              <DisabledCell />
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>
-                <strong>Valor Agregado Neto</strong>
-              </td>
-              {DisabledCells("van", 6, 5)}
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              {DisabledCells("sbsce", 3, 3)}
-              <td>
-                <strong>Saldo de bienes y servicios con el exterior</strong>
-              </td>
-              {DisabledCells("sbsce", 6, 5)}
-            </tr>
-          </tbody>
-        </Table>
-      </div>
+      {false && (
+        <div>
+          <h2>Por Sectores Institucionales</h2>
+          <Table
+            striped
+            bordered
+            hover
+            className="text-center align-middle mt-3 custom-table"
+          >
+            <thead>
+              <tr>
+                <th colSpan={5}>USOS</th>
+                <th rowSpan={2}>Transacciones y Otros Saldos</th>
+                <th colSpan={5}>RECURSOS</th>
+              </tr>
+              <tr>
+                <th>Total</th>
+                <th>Resto del Mundo</th>
+                <th>SubTotal</th>
+                <th>Gobierno</th>
+                <th>Sociedades</th>
+                <th>Sociedades</th>
+                <th>Gobierno</th>
+                <th>SubTotal</th>
+                <th>Resto del Mundo</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {DisabledCells("imports", 0, 5)}
+                <td>
+                  <strong>Importaciones de bienes y servicios</strong>
+                </td>
+                {DisabledCells("imports", 6, 3)}
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+                <td></td>
+                {DisabledCells("exports", 3, 3)}
+                <td>
+                  <strong>Exportaciones de bienes y servicios</strong>
+                </td>
+                {DisabledCells("exports", 6, 5)}
+              </tr>
+              <tr>
+                {DisabledCells("production", 0, 5)}
+                <td>
+                  <strong>Produccion</strong>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <DisabledCell />
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+                <DisabledCell />
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                  <strong>Consumo Intermedio</strong>
+                </td>
+                {DisabledCells("ci", 6, 5)}
+              </tr>
+              <tr>
+                <td></td>
+                <DisabledCell />
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                  <strong>Valor Agregado Bruto</strong>
+                </td>
+                {DisabledCells("vab", 6, 5)}
+              </tr>
+              <tr>
+                <td></td>
+                <DisabledCell />
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                  <strong>Consumo de Capital Fijo</strong>
+                </td>
+                {DisabledCells("ckf", 6, 5)}
+              </tr>
+              <tr>
+                <td></td>
+                <DisabledCell />
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                  <strong>Valor Agregado Neto</strong>
+                </td>
+                {DisabledCells("van", 6, 5)}
+              </tr>
+              <tr>
+                <td></td>
+                <td></td>
+                {DisabledCells("sbsce", 3, 3)}
+                <td>
+                  <strong>Saldo de bienes y servicios con el exterior</strong>
+                </td>
+                {DisabledCells("sbsce", 6, 5)}
+              </tr>
+            </tbody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 };
