@@ -230,8 +230,6 @@ const CuPro = ({ appValues }) => {
       }
     });
 
-    console.log({ equations });
-
     let hasComputed;
     let maxAmountOfIterations = 20;
 
