@@ -1,5 +1,4 @@
 import _ from "lodash";
-import algebra from "algebra.js";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import React, { useState } from "react";
@@ -7,6 +6,11 @@ import { getItem, setItem } from "../shared/db";
 import DisabledCell from "./DisabledCell";
 import DisabledCells from "./DisabledCells";
 import { Form, Modal } from "react-bootstrap";
+import hasContent from "../shared/hasContent";
+import solveEquation from "../shared/solveEquation";
+import buildEquationSides from "../shared/buildEquationSides";
+import isEquationSolvable from "../shared/isEquationSolvable";
+import surround from "../shared/surround";
 
 const Cou = ({ appValues, setAppValues }) => {
   const branchesIndexes = _.range(1, appValues.branches.length + 1);
@@ -231,10 +235,6 @@ const Cou = ({ appValues, setAppValues }) => {
     );
   };
 
-  const hasContent = (val) => {
-    return !_.isNil(val) && val !== "";
-  };
-
   const propsWithoutContent = (obj) => {
     const keys = [];
 
@@ -245,12 +245,6 @@ const Cou = ({ appValues, setAppValues }) => {
     }
 
     return keys;
-  };
-
-  // it's required to surround values with parenthesis for the algebra.js library to work
-  // it breaks when the values are negative and they are not surrounded
-  const surround = (val) => {
-    return "(" + val + ")";
   };
 
   // given a cell changing its value, then a new loop calculation will be required
@@ -278,16 +272,6 @@ const Cou = ({ appValues, setAppValues }) => {
 
   const equationIsSolvable = (noValueProps, target) => {
     return noValueProps.length === 1 && noValueProps[0] === target;
-  };
-
-  const solveEquation = (leftSide, rightSide) => {
-    const expresion = new algebra.Equation(
-      algebra.parse(_.toString(leftSide)),
-      algebra.parse(_.toString(rightSide))
-    );
-    const solution = expresion.solveFor("x");
-    console.log(`Solving equation: ${leftSide} = ${rightSide}`, { solution });
-    return solution.numer / solution.denom;
   };
 
   const computeIntermediateUseSt = (rowKey) => {
@@ -1089,44 +1073,12 @@ const Cou = ({ appValues, setAppValues }) => {
 
     Object.keys(equations).forEach((targetCell) => {
       const equationElements = equations[targetCell];
-      let leftSide = "";
-      let rightSide = "";
-      let requiredValuesAmount = 0;
-      let definedValuesAmount = 0;
-      let switchToRightSide = false;
+      if (isEquationSolvable(equationElements, couValues)) {
+        const { leftSide, rightSide } = buildEquationSides(
+          equationElements,
+          couValues
+        );
 
-      equationElements.forEach((element) => {
-        let content;
-        switch (element) {
-          case "x":
-            content = element;
-            requiredValuesAmount++;
-            break;
-          case "+":
-            content = element;
-            break;
-          case "=":
-            switchToRightSide = true;
-            break;
-          default:
-            let val = _.get(couValues, element);
-            if (hasContent(val)) {
-              definedValuesAmount++;
-              content = surround(_.toString(val));
-            }
-            requiredValuesAmount++;
-        }
-
-        if (!_.isNil(content) && content !== "") {
-          if (switchToRightSide) {
-            rightSide += content;
-          } else {
-            leftSide += content;
-          }
-        }
-      });
-
-      if (requiredValuesAmount === definedValuesAmount + 1) {
         const val = solveEquation(leftSide, rightSide);
         hasComputed = shouldCompute(val, targetCell);
         console.log(
@@ -1304,11 +1256,9 @@ const Cou = ({ appValues, setAppValues }) => {
 
     saveCouValues(couValues);
   };
-
   const empty = () => {
     saveCouValues(emptyCou);
   };
-
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -1356,11 +1306,12 @@ const Cou = ({ appValues, setAppValues }) => {
     const saved = getItem("saved") || {};
     const cou = saved.cou || {};
     const couNames = Object.keys(cou);
-    if (couNames.length === 0) {
+    const ret = couNames.length > 0;
+    if (!ret) {
       alert("No hay COUs guardados");
-      return;
     }
     setSavedCous(couNames);
+    return ret;
   };
 
   return (
@@ -1380,8 +1331,7 @@ const Cou = ({ appValues, setAppValues }) => {
       <Button
         variant="info"
         onClick={() => {
-          updateSavedCous();
-          setShowLoadModal(true);
+          setShowLoadModal(updateSavedCous());
         }}
       >
         Cargar

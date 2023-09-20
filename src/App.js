@@ -1,6 +1,6 @@
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
-import { Accordion, Col, Container, Form, Row } from "react-bootstrap";
+import { Accordion, Col, Form, Row } from "react-bootstrap";
 import "./App.css";
 import Cou from "./components/Cou";
 import Footer from "./components/Footer";
@@ -10,10 +10,11 @@ import CuADI from "./components/CuADI";
 import CUI from "./components/CUI";
 import CuCa from "./components/CuCa";
 import CuFi from "./components/CuFi";
+import { getItem, setItem } from "./shared/db";
 
 const App = () => {
-  const localAppValues = (localStorage.getItem("cou_appValues") &&
-    JSON.parse(localStorage.getItem("cou_appValues"))) || {
+  const storedAppValues = getItem("appValues");
+  const localAppValues = storedAppValues || {
     branches: [
       {
         name: "Rama 1",
@@ -29,7 +30,7 @@ const App = () => {
   const [appValues, setAppValues] = useState(localAppValues);
 
   useEffect(() => {
-    localStorage.setItem("cou_appValues", JSON.stringify(appValues));
+    setItem("appValues", appValues);
   }, [appValues]);
 
   return (
