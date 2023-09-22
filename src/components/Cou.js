@@ -5,12 +5,14 @@ import React, { useState } from "react";
 import { getItem, setItem } from "../shared/db";
 import DisabledCell from "./DisabledCell";
 import DisabledCells from "./DisabledCells";
-import { Form, Modal } from "react-bootstrap";
 import hasContent from "../shared/hasContent";
 import solveEquation from "../shared/solveEquation";
 import buildEquationSides from "../shared/buildEquationSides";
 import isEquationSolvable from "../shared/isEquationSolvable";
 import surround from "../shared/surround";
+import shouldCompute from "../shared/shouldCompute";
+import TableInputGenerator from "./TableInputGenerator";
+import CrudModals from "./CrudModals";
 
 const Cou = ({ appValues, setAppValues }) => {
   const branchesIndexes = _.range(1, appValues.branches.length + 1);
@@ -83,135 +85,45 @@ const Cou = ({ appValues, setAppValues }) => {
     saveCouValues(couValues);
   };
 
+  const cellGenerator = new TableInputGenerator(
+    couValues,
+    handleCouValueChange
+  );
+
   const IntermediateUseRow = (rowKey) => {
     let index = 1;
     return [
       ...branchesIndexes.map((idx) => {
-        return (
-          <td key={`${rowKey}${index++}`}>
-            <input
-              className="invisible-input"
-              type="number"
-              value={couValues[rowKey]?.intermediateUse[`branch${idx}`] ?? ""}
-              onChange={(e) => {
-                handleCouValueChange(
-                  e.target.value,
-                  rowKey + ".intermediateUse.branch" + idx
-                );
-              }}
-            />
-          </td>
-        );
+        return cellGenerator.generate(rowKey + ".intermediateUse.branch" + idx);
       }),
       // no gov column is used when row is gov, tax or een
       rowKey === "gov" || rowKey === "tax" || rowKey === "een" ? (
         <DisabledCell key={`${rowKey}${index++}`} />
       ) : (
-        <td key={`${rowKey}${index++}`}>
-          <input
-            className="invisible-input"
-            type="number"
-            value={couValues[rowKey]?.intermediateUse.gov ?? ""}
-            onChange={(e) => {
-              handleCouValueChange(
-                e.target.value,
-                rowKey + ".intermediateUse.gov"
-              );
-            }}
-          />
-        </td>
+        cellGenerator.generate(rowKey + ".intermediateUse.gov")
       ),
-      <td key={`${rowKey}${index++}`}>
-        <input
-          className="invisible-input"
-          type="number"
-          value={couValues[rowKey]?.intermediateUse.st ?? ""}
-          onChange={(e) => {
-            handleCouValueChange(
-              e.target.value,
-              rowKey + ".intermediateUse.st"
-            );
-          }}
-        />
-      </td>,
+      cellGenerator.generate(rowKey + ".intermediateUse.st"),
     ];
   };
 
   const FinalUseRow = (rowKey) => {
     let index = 6;
     return [
-      <td key={`${rowKey}${index++}`}>
-        <input
-          className="invisible-input"
-          type="number"
-          value={couValues[rowKey]?.finalUse.gcfHomes ?? ""}
-          onChange={(e) => {
-            handleCouValueChange(e.target.value, rowKey + ".finalUse.gcfHomes");
-          }}
-        />
-      </td>,
+      cellGenerator.generate(rowKey + ".finalUse.gcfHomes"),
       // gov gcf is used only when row is gov or totalUses
       rowKey === "gov" || rowKey === "totalUses" ? (
-        <td key={`${rowKey}${index++}`}>
-          <input
-            className="invisible-input"
-            type="number"
-            value={couValues[rowKey]?.finalUse.gcfGov ?? ""}
-            onChange={(e) => {
-              handleCouValueChange(e.target.value, rowKey + ".finalUse.gcfGov");
-            }}
-          />
-        </td>
+        cellGenerator.generate(rowKey + ".finalUse.gcfGov")
       ) : (
         <DisabledCell key={`${rowKey}${index++}`} />
       ),
-      <td key={`${rowKey}${index++}`}>
-        <input
-          className="invisible-input"
-          type="number"
-          value={couValues[rowKey]?.finalUse.fbkFbkf ?? ""}
-          onChange={(e) => {
-            handleCouValueChange(e.target.value, rowKey + ".finalUse.fbkFbkf");
-          }}
-        />
-      </td>,
-      <td key={`${rowKey}${index++}`}>
-        <input
-          className="invisible-input"
-          type="number"
-          value={couValues[rowKey]?.finalUse.fbkVe ?? ""}
-          onChange={(e) => {
-            handleCouValueChange(e.target.value, rowKey + ".finalUse.fbkVe");
-          }}
-        />
-      </td>,
+      cellGenerator.generate(rowKey + ".finalUse.fbkFbkf"),
+      cellGenerator.generate(rowKey + ".finalUse.fbkVe"),
       rowKey === "imports" ? (
         <DisabledCell key={`${rowKey}${index++}`} />
       ) : (
-        <td key={`${rowKey}${index++}`}>
-          <input
-            className="invisible-input"
-            type="number"
-            value={couValues[rowKey]?.finalUse.exports ?? ""}
-            onChange={(e) => {
-              handleCouValueChange(
-                e.target.value,
-                rowKey + ".finalUse.exports"
-              );
-            }}
-          />
-        </td>
+        cellGenerator.generate(rowKey + ".finalUse.exports")
       ),
-      <td key={`${rowKey}${index++}`}>
-        <input
-          className="invisible-input"
-          type="number"
-          value={couValues[rowKey]?.finalUse.st ?? ""}
-          onChange={(e) => {
-            handleCouValueChange(e.target.value, rowKey + ".finalUse.st");
-          }}
-        />
-      </td>,
+      cellGenerator.generate(rowKey + ".finalUse.st"),
     ];
   };
 
@@ -221,18 +133,7 @@ const Cou = ({ appValues, setAppValues }) => {
   };
 
   const TotalCell = (rowKey) => {
-    return (
-      <td key={`${rowKey}13`}>
-        <input
-          className="invisible-input"
-          type="number"
-          value={couValues[rowKey]?.total ?? ""}
-          onChange={(e) => {
-            handleCouValueChange(e.target.value, rowKey + ".total");
-          }}
-        />
-      </td>
-    );
+    return cellGenerator.generate(rowKey + ".total");
   };
 
   const propsWithoutContent = (obj) => {
@@ -247,28 +148,11 @@ const Cou = ({ appValues, setAppValues }) => {
     return keys;
   };
 
-  // given a cell changing its value, then a new loop calculation will be required
-  const shouldCompute = (val, path) => {
-    let cond = false;
-
-    if (hasContent(val)) {
-      cond = val !== _.get(couValues, path);
-      // modify value in cou only if it's detected that the value has changed
-      if (cond) {
-        console.log(
-          `Setting COU at ${path} with ${val}. Previous value: ${_.get(
-            couValues,
-            path
-          )}`
-        );
-        _.set(couValues, path, val);
-      }
-    }
-
-    return cond;
-  };
-
   // TODO: for the computing operations, we should unifiy everything using the equations libray (Algebra.js) (should we?)
+  // By the moment this was implemente, I didn't have a clear understanding of how to express the cells values in terms
+  // of equations, that's why the implementation relies heavily on iterating over the other cells for adding and calculating
+  // the final values. After all these, we implemented the other modules by using equations and the Algebra.js library
+  // which is the goal for this module as well.
 
   const equationIsSolvable = (noValueProps, target) => {
     return noValueProps.length === 1 && noValueProps[0] === target;
@@ -363,7 +247,7 @@ const Cou = ({ appValues, setAppValues }) => {
       }
     }
 
-    const s = shouldCompute(val, rowKey + ".intermediateUse.st");
+    const s = shouldCompute(couValues, val, rowKey + ".intermediateUse.st");
 
     if (!s) console.log("Could not compute, not enough data available");
 
@@ -446,7 +330,11 @@ const Cou = ({ appValues, setAppValues }) => {
       }
     }
 
-    const c = shouldCompute(val, "totalUses.intermediateUse." + columnKey);
+    const c = shouldCompute(
+      couValues,
+      val,
+      "totalUses.intermediateUse." + columnKey
+    );
 
     if (!c) console.log("Could not compute, not enough data available");
 
@@ -531,7 +419,7 @@ const Cou = ({ appValues, setAppValues }) => {
       }
     }
 
-    const c = shouldCompute(val, "vab.intermediateUse." + columnKey);
+    const c = shouldCompute(couValues, val, "vab.intermediateUse." + columnKey);
 
     if (!c) console.log("Could not compute, not enough data available");
 
@@ -595,7 +483,11 @@ const Cou = ({ appValues, setAppValues }) => {
       val = couValues[columnKey].total;
     }
 
-    const c = shouldCompute(val, "production.intermediateUse." + columnKey);
+    const c = shouldCompute(
+      couValues,
+      val,
+      "production.intermediateUse." + columnKey
+    );
 
     if (!c) console.log("Could not compute, not enough data available");
 
@@ -692,7 +584,7 @@ const Cou = ({ appValues, setAppValues }) => {
       }
     }
 
-    const c = shouldCompute(val, rowKey + ".finalUse.st");
+    const c = shouldCompute(couValues, val, rowKey + ".finalUse.st");
 
     if (!c) console.log("Could not compute, not enough data available");
 
@@ -782,7 +674,7 @@ const Cou = ({ appValues, setAppValues }) => {
       }
     }
 
-    const c = shouldCompute(val, "totalUses.finalUse." + columnKey);
+    const c = shouldCompute(couValues, val, "totalUses.finalUse." + columnKey);
 
     if (!c) console.log("Could not compute, not enough data available");
 
@@ -855,7 +747,7 @@ const Cou = ({ appValues, setAppValues }) => {
       }
     }
 
-    const c = shouldCompute(val, rowKey + ".total");
+    const c = shouldCompute(couValues, val, rowKey + ".total");
 
     if (!c) console.log("Could not compute, not enough data available");
 
@@ -1080,7 +972,7 @@ const Cou = ({ appValues, setAppValues }) => {
         );
 
         const val = solveEquation(leftSide, rightSide);
-        hasComputed = shouldCompute(val, targetCell);
+        hasComputed = shouldCompute(couValues, val, targetCell);
         console.log(
           "Computed value: " +
             val +
@@ -1171,7 +1063,7 @@ const Cou = ({ appValues, setAppValues }) => {
       } else if (hasContent(couValues.production.intermediateUse.gov)) {
         val = couValues.production.intermediateUse.gov;
       }
-      hasComputed = shouldCompute(val, "gov.finalUse.gcfGov");
+      hasComputed = shouldCompute(couValues, val, "gov.finalUse.gcfGov");
     }
 
     return hasComputed;
@@ -1259,60 +1151,6 @@ const Cou = ({ appValues, setAppValues }) => {
   const empty = () => {
     saveCouValues(emptyCou);
   };
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showLoadModal, setShowLoadModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [savedCous, setSavedCous] = useState([]);
-  const [fileName, setFileName] = useState("");
-  const [optionToDelete, setOptionToDelete] = useState("");
-  const handleCloseSaveModal = () => {
-    setShowSaveModal(false);
-  };
-  const handleCloseLoadModal = () => {
-    setShowLoadModal(false);
-  };
-  const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false);
-  };
-  const handleSave = () => {
-    if (fileName?.trim().length === 0) return;
-    const saved = getItem("saved") || {};
-    saved.cou = saved.cou || {};
-    saved.cou[fileName] = couValues;
-    setItem("saved", saved);
-    setShowSaveModal(false);
-  };
-  const handleLoad = () => {
-    if (fileName?.trim().length === 0) return;
-    const saved = getItem("saved") || {};
-    saved.cou = saved.cou || {};
-    const cou = saved.cou[fileName];
-    if (!cou) {
-      alert("No existe el COU guardado");
-      return;
-    }
-    saveCouValues(cou);
-    setShowLoadModal(false);
-  };
-  const handleDelete = () => {
-    const saved = getItem("saved") || {};
-    saved.cou = saved.cou || {};
-    delete saved.cou[optionToDelete];
-    setItem("saved", saved);
-    setShowDeleteModal(false);
-    updateSavedCous();
-  };
-  const updateSavedCous = () => {
-    const saved = getItem("saved") || {};
-    const cou = saved.cou || {};
-    const couNames = Object.keys(cou);
-    const ret = couNames.length > 0;
-    if (!ret) {
-      alert("No hay COUs guardados");
-    }
-    setSavedCous(couNames);
-    return ret;
-  };
 
   return (
     <div>
@@ -1324,18 +1162,15 @@ const Cou = ({ appValues, setAppValues }) => {
         Vaciar
       </Button>
       &nbsp;
-      <Button variant="success" onClick={() => setShowSaveModal(true)}>
-        Guardar
-      </Button>
-      &nbsp;
-      <Button
-        variant="info"
-        onClick={() => {
-          setShowLoadModal(updateSavedCous());
-        }}
-      >
-        Cargar
-      </Button>
+      <CrudModals
+        currentItem={couValues}
+        storageKey="cou"
+        saveModalTitle="Guardar COU"
+        loadModalTitle="Cargar COU"
+        deleteModalTitle="Borrar COU"
+        deleteModalMessage="¿Está seguro que desea borrar el COU?"
+        itemSaver={saveCouValues}
+      />
       <Table
         striped
         bordered
@@ -1392,37 +1227,10 @@ const Cou = ({ appValues, setAppValues }) => {
               <strong>Serv. Gob.</strong>
             </td>
             {DisabledCells("gov", 1, appValues.branches.length + 3)}
-            <td>
-              <input
-                className="invisible-input"
-                type="number"
-                value={couValues.gov.finalUse.gcfGov ?? ""}
-                onChange={(e) => {
-                  handleCouValueChange(e.target.value, "gov.finalUse.gcfGov");
-                }}
-              />
-            </td>
+            {cellGenerator.generate("gov.finalUse.gcfGov")}
             {DisabledCells("gov", 8, 3)}
-            <td>
-              <input
-                className="invisible-input"
-                type="number"
-                value={couValues.gov.finalUse.st ?? ""}
-                onChange={(e) => {
-                  handleCouValueChange(e.target.value, "gov.finalUse.st");
-                }}
-              />
-            </td>
-            <td>
-              <input
-                className="invisible-input"
-                type="number"
-                value={couValues.gov.total ?? ""}
-                onChange={(e) => {
-                  handleCouValueChange(e.target.value, "gov.total");
-                }}
-              />
-            </td>
+            {cellGenerator.generate("gov.finalUse.st")}
+            {cellGenerator.generate("gov.total")}
           </tr>
 
           {/* Imports Row */}
@@ -1500,100 +1308,6 @@ const Cou = ({ appValues, setAppValues }) => {
           </tr>
         </tbody>
       </Table>
-      {showSaveModal && (
-        <Modal show={showSaveModal} onHide={handleCloseSaveModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Guardar Contenido del COU</Modal.Title>
-          </Modal.Header>
-
-          <Modal.Body>
-            <Form>
-              <Form.Group>
-                <Form.Label>Nombre del archivo:</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Ingrese el nombre del archivo"
-                  value={fileName}
-                  onChange={(e) => setFileName(e.target.value)}
-                />
-              </Form.Group>
-            </Form>
-          </Modal.Body>
-
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseSaveModal}>
-              Cerrar
-            </Button>
-            <Button variant="primary" onClick={handleSave}>
-              Guardar
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
-      {showLoadModal && (
-        <Modal show={showLoadModal} onHide={handleCloseLoadModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Cargar contenido a COU</Modal.Title>
-          </Modal.Header>
-
-          <Modal.Body>
-            {savedCous.map((option, index) => (
-              <div key={index}>
-                <Form.Check
-                  type="radio"
-                  value={option}
-                  checked={fileName === option}
-                  onChange={(e) => setFileName(e.target.value)}
-                  label={
-                    <span>
-                      {option} &nbsp;{" "}
-                      <strong
-                        style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          setOptionToDelete(option);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        X
-                      </strong>
-                    </span>
-                  }
-                />
-                &nbsp;
-              </div>
-            ))}
-          </Modal.Body>
-
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseLoadModal}>
-              Cerrar
-            </Button>
-            <Button variant="primary" onClick={handleLoad}>
-              Cargar
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
-      {showDeleteModal && (
-        <Modal show={showDeleteModal} onHide={handleCloseDeleteModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Eliminar COU</Modal.Title>
-          </Modal.Header>
-
-          <Modal.Body>
-            <p>¿Está seguro que desea eliminar el COU?</p>
-          </Modal.Body>
-
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseDeleteModal}>
-              Cerrar
-            </Button>
-            <Button variant="danger" onClick={handleDelete}>
-              Eliminar
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
     </div>
   );
 };

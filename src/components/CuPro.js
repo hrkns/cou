@@ -1,13 +1,15 @@
 import _ from "lodash";
 import React, { useState } from "react";
-import { Button, Form, Modal, Table } from "react-bootstrap";
+import { Button, Table } from "react-bootstrap";
 import DisabledCells from "./DisabledCells";
 import DisabledCell from "./DisabledCell";
 import { getItem, setItem } from "../shared/db";
-import hasContent from "../shared/hasContent";
 import solveEquation from "../shared/solveEquation";
 import isEquationSolvable from "../shared/isEquationSolvable";
 import buildEquationSides from "../shared/buildEquationSides";
+import shouldCompute from "../shared/shouldCompute";
+import TableInputGenerator from "./TableInputGenerator";
+import CrudModals from "./CrudModals";
 
 const CuPro = ({ appValues }) => {
   const branches = appValues.branches;
@@ -69,7 +71,6 @@ const CuPro = ({ appValues }) => {
   const [CuProByActivity, setCuProByActivity] = useState(
     _.cloneDeep(storedCuProByActivity || emptyCuproByActivity)
   );
-  /******************************************************************************/
   const saveCuProByActivityValues = (content) => {
     setCuProByActivity(_.cloneDeep(content));
     setItem("cuProByActivity", content);
@@ -77,34 +78,6 @@ const CuPro = ({ appValues }) => {
   const handleCuProByActivityValueChange = (value, path) => {
     _.set(CuProByActivity, path, value);
     saveCuProByActivityValues(CuProByActivity);
-  };
-  /******************************************************************************/
-  // given a cell changing its value, then a new loop calculation will be required
-  const shouldCompute = (val, path) => {
-    let cond = false;
-
-    if (hasContent(val)) {
-      cond = val !== _.get(CuProByActivity, path);
-      // modify value in cou only if it's detected that the value has changed
-      if (cond) {
-        console.log(
-          `Setting Production Account at ${path} with ${val}. Previous value: ${_.get(
-            CuProByActivity,
-            path
-          )}`
-        );
-        _.set(CuProByActivity, path, val);
-      } else {
-        console.log(
-          `Value at ${path} has not changed. Previous value: ${_.get(
-            CuProByActivity,
-            path
-          )}`
-        );
-      }
-    }
-
-    return cond;
   };
   const computeByActivity = () => {
     console.log("Computing Production Account by Activity values");
@@ -231,7 +204,7 @@ const CuPro = ({ appValues }) => {
     });
 
     let hasComputed;
-    let maxAmountOfIterations = 20;
+    let maxAmountOfIterations = 100;
 
     do {
       const cells = Object.keys(equations);
@@ -263,7 +236,7 @@ const CuPro = ({ appValues }) => {
               CuProByActivity
             );
             const val = solveEquation(leftSide, rightSide);
-            hasComputed = shouldCompute(val, targetCell);
+            hasComputed = shouldCompute(CuProByActivity, val, targetCell);
           } else {
             console.log(
               `Equation ${equationsAssociatedToCell[
@@ -292,63 +265,6 @@ const CuPro = ({ appValues }) => {
   const emptyByActivity = () => {
     saveCuProByActivityValues(emptyCuproByActivity);
   };
-  /******************************************************************************/
-  const [showSaveByActivityModal, setShowSaveByActivityModal] = useState(false);
-  const [showLoadByActivityModal, setShowLoadByActivityModal] = useState(false);
-  const [showDeleteByActivityModal, setShowDeleteByActivity] = useState(false);
-  const [savedCuProsByActivity, setSavedCuProsByActivity] = useState([]);
-  const [fileNameByActivity, setFileNameByActivity] = useState("");
-  const [optionByActivityToDelete, setOptionByActivityToDelete] = useState("");
-  const handleCloseSaveByActivityModal = () => {
-    setShowSaveByActivityModal(false);
-  };
-  const handleCloseLoadByActivityModal = () => {
-    setShowLoadByActivityModal(false);
-  };
-  const handleCloseDeleteByActivityModal = () => {
-    setShowDeleteByActivity(false);
-  };
-  const handleSaveByActivity = () => {
-    if (fileNameByActivity?.trim().length === 0) return;
-    const saved = getItem("saved") || {};
-    saved.cuProByActivity = saved.cuProByActivity || {};
-    saved.cuProByActivity[fileNameByActivity] = CuProByActivity;
-    setItem("saved", saved);
-    setShowSaveByActivityModal(false);
-  };
-  const handleLoadByActivity = () => {
-    if (fileNameByActivity?.trim().length === 0) return;
-    const saved = getItem("saved") || {};
-    saved.cuProByActivity = saved.cuProByActivity || {};
-    const cuProByActivity = saved.cuProByActivity[fileNameByActivity];
-    if (!cuProByActivity) {
-      alert("No existe la Cuenta de Producción por Actividad guardada!");
-      return;
-    }
-    saveCuProByActivityValues(cuProByActivity);
-    setShowLoadByActivityModal(false);
-  };
-  const handleDeleteByActivity = () => {
-    const saved = getItem("saved") || {};
-    saved.cuProByActivity = saved.cuProByActivity || {};
-    delete saved.cuProByActivity[optionByActivityToDelete];
-    setItem("saved", saved);
-    setShowDeleteByActivity(false);
-    updateSavedCuPros();
-  };
-  const updateSavedCuPros = () => {
-    const saved = getItem("saved") || {};
-    const cuProByActivity = saved.cuProByActivity || {};
-    const cuProsByActivityNames = Object.keys(cuProByActivity);
-    const ret = cuProsByActivityNames.length > 0;
-    if (!ret) {
-      alert("No hay Cuentas de Producción por Actividad guardadas");
-    }
-    setSavedCuProsByActivity(cuProsByActivityNames);
-    setShowLoadByActivityModal(ret);
-    return ret;
-  };
-  /******************************************************************************/
   const retrieveFromCouForByActivity = () => {
     // retrieve values from Production row
     branchesIndexes.forEach((idx) => {
@@ -390,7 +306,251 @@ const CuPro = ({ appValues }) => {
 
     saveCuProByActivityValues(CuProByActivity);
   };
+  const cellGeneratorForByActivities = new TableInputGenerator(
+    CuProByActivity,
+    handleCuProByActivityValueChange
+  );
   /******************************************************************************/
+  const emptyCuproByInstitutionalSectors = {
+    imports: {
+      resource: {
+        rm: null,
+        total: null,
+      },
+    },
+    exports: {
+      usage: {
+        rm: null,
+        total: null,
+      },
+    },
+    production: {
+      resource: {
+        society: null,
+        gov: null,
+        st: null,
+        total: null,
+      },
+    },
+    ci: {
+      usage: {
+        society: null,
+        gov: null,
+        st: null,
+        total: null,
+      },
+    },
+    vab: {
+      usage: {
+        society: null,
+        gov: null,
+        st: null,
+        total: null,
+      },
+    },
+    ckf: {
+      usage: {
+        society: null,
+        gov: null,
+        st: null,
+        total: null,
+      },
+    },
+    van: {
+      usage: {
+        society: null,
+        gov: null,
+        st: null,
+        total: null,
+      },
+    },
+    sbsx: {
+      usage: {
+        rm: null,
+        total: null,
+      },
+    },
+  };
+  const storedCuProByInstitutionalSectors = getItem(
+    "cuProByInstitutionalSectors"
+  );
+  const [CuProByInstitutionalSectors, setCuProByInstitutionalSectors] =
+    useState(
+      _.cloneDeep(
+        storedCuProByInstitutionalSectors || emptyCuproByInstitutionalSectors
+      )
+    );
+  const saveCuProByInstitutionalSectorsValues = (content) => {
+    setCuProByInstitutionalSectors(_.cloneDeep(content));
+    setItem("cuProByInstitutionalSectors", content);
+  };
+  const handleCuProByInstitutionalSectorsValueChange = (value, path) => {
+    _.set(CuProByInstitutionalSectors, path, value);
+    saveCuProByInstitutionalSectorsValues(CuProByInstitutionalSectors);
+  };
+  const computeByInstitutionalSectors = () => {
+    console.log("Computing Production Account by Institutional Sectors values");
+    const equationInvolvingImportsAndExportsAndSbsx = (col, variable) => {
+      return [
+        variable === "imports" ? "x" : `imports.resource.${col}`,
+        "-",
+        variable === "exports" ? "x" : `exports.usage.${col}`,
+        "=",
+        variable === "sbsx" ? "x" : `sbsx.usage.${col}`,
+      ];
+    };
+    const equationInvolvingProductionAndCiAndVab = (col, variable) => {
+      return [
+        variable === "production" ? "x" : `production.resource.${col}`,
+        "-",
+        variable === "ci" ? "x" : `ci.usage.${col}`,
+        "=",
+        variable === "vab" ? "x" : `vab.usage.${col}`,
+      ];
+    };
+    const equationInvolvingVabAndCkfAndVan = (col, variable) => {
+      return [
+        variable === "vab" ? "x" : `vab.usage.${col}`,
+        "-",
+        variable === "ckf" ? "x" : `ckf.usage.${col}`,
+        "=",
+        variable === "van" ? "x" : `van.usage.${col}`,
+      ];
+    };
+    let hasComputed = false;
+    let maxAmountOfIterations = 100;
+
+    do {
+      hasComputed = false;
+      const rows = Object.keys(emptyCuproByInstitutionalSectors);
+      let iRows = 0;
+
+      while (iRows < rows.length && !hasComputed) {
+        const row = rows[iRows];
+        let side;
+        let cols;
+        const equationsGenerators = [];
+
+        if (row === "imports" || row === "exports" || row === "sbsx") {
+          side = row === "imports" ? "resource" : "usage";
+          cols = ["rm", "total"];
+          equationsGenerators.push(equationInvolvingImportsAndExportsAndSbsx);
+        } else if (row === "production" || row === "ci") {
+          side = row === "production" ? "resource" : "usage";
+          cols = ["society", "gov", "st", "total"];
+          equationsGenerators.push(equationInvolvingProductionAndCiAndVab);
+        } else if (row === "vab") {
+          side = "usage";
+          cols = ["society", "gov", "st", "total"];
+          equationsGenerators.push(
+            equationInvolvingProductionAndCiAndVab,
+            equationInvolvingVabAndCkfAndVan
+          );
+        } else if (row === "ckf" || row === "van") {
+          side = "usage";
+          cols = ["society", "gov", "st", "total"];
+          equationsGenerators.push(equationInvolvingVabAndCkfAndVan);
+        }
+        let iCols = 0;
+        while (iCols < cols.length && !hasComputed) {
+          const col = cols[iCols];
+          let iEquations = 0;
+          while (iEquations < equationsGenerators.length && !hasComputed) {
+            const equation = equationsGenerators[iEquations](col, row);
+            if (isEquationSolvable(equation, CuProByInstitutionalSectors)) {
+              console.log(`Solving ${equation.join(" ")}`);
+              const { leftSide, rightSide } = buildEquationSides(
+                equation,
+                CuProByInstitutionalSectors
+              );
+              hasComputed = shouldCompute(
+                CuProByInstitutionalSectors,
+                solveEquation(leftSide, rightSide),
+                `${row}.${side}.${col}`
+              );
+            } else {
+              console.log(`Equation ${equation.join(" ")} is not solvable`);
+            }
+            iEquations++;
+          }
+          iCols++;
+        }
+        iRows++;
+      }
+      maxAmountOfIterations--;
+    } while (hasComputed && maxAmountOfIterations > 0);
+
+    if (maxAmountOfIterations === 0) {
+      alert(
+        "Se ha alcanzado el máximo número de iteraciones para calcular la Cuenta de Producción por Sectores Institucionales"
+      );
+    }
+
+    saveCuProByInstitutionalSectorsValues(CuProByInstitutionalSectors);
+  };
+  const emptyByInstitutionalSectors = () => {
+    saveCuProByInstitutionalSectorsValues(emptyCuproByInstitutionalSectors);
+  };
+  const retrieveFromCouForByInstitutionalSectors = () => {
+    CuProByInstitutionalSectors.imports.resource.rm =
+      appValues.cou.imports.total;
+    CuProByInstitutionalSectors.imports.resource.total =
+      appValues.cou.imports.total;
+    CuProByInstitutionalSectors.exports.usage.rm =
+      appValues.cou.totalUses.finalUse.exports;
+    CuProByInstitutionalSectors.exports.usage.total =
+      appValues.cou.totalUses.finalUse.exports;
+    CuProByInstitutionalSectors.production.resource.society = _.sum(
+      branchesIndexes.map((idx) =>
+        _.toNumber(appValues.cou.production.intermediateUse[`branch${idx}`])
+      )
+    );
+    CuProByInstitutionalSectors.production.resource.gov =
+      appValues.cou.production.intermediateUse.gov;
+    CuProByInstitutionalSectors.production.resource.st =
+      appValues.cou.production.intermediateUse.st;
+    CuProByInstitutionalSectors.production.resource.total =
+      appValues.cou.production.intermediateUse.st;
+    CuProByInstitutionalSectors.ci.usage.society = _.sum(
+      branchesIndexes.map((idx) =>
+        _.toNumber(appValues.cou.totalUses.intermediateUse[`branch${idx}`])
+      )
+    );
+    CuProByInstitutionalSectors.ci.usage.gov =
+      appValues.cou.totalUses.intermediateUse.gov;
+    CuProByInstitutionalSectors.ci.usage.st =
+      appValues.cou.totalUses.intermediateUse.st;
+    CuProByInstitutionalSectors.ci.usage.total =
+      appValues.cou.totalUses.intermediateUse.st;
+    CuProByInstitutionalSectors.vab.usage.society = _.sum(
+      branchesIndexes.map((idx) =>
+        _.toNumber(appValues.cou.vab.intermediateUse[`branch${idx}`])
+      )
+    );
+    CuProByInstitutionalSectors.vab.usage.gov =
+      appValues.cou.vab.intermediateUse.gov;
+    CuProByInstitutionalSectors.vab.usage.st =
+      appValues.cou.vab.intermediateUse.st;
+    CuProByInstitutionalSectors.vab.usage.total =
+      appValues.cou.vab.intermediateUse.st;
+    CuProByInstitutionalSectors.ckf.usage.society = _.sum(
+      branchesIndexes.map((idx) =>
+        _.toNumber(appValues.cou.ckf.intermediateUse[`branch${idx}`])
+      )
+    );
+    CuProByInstitutionalSectors.ckf.usage.gov =
+      appValues.cou.ckf.intermediateUse.gov;
+    CuProByInstitutionalSectors.ckf.usage.st =
+      appValues.cou.ckf.intermediateUse.st;
+    CuProByInstitutionalSectors.ckf.usage.total =
+      appValues.cou.ckf.intermediateUse.st;
+
+    saveCuProByInstitutionalSectorsValues(CuProByInstitutionalSectors);
+  };
+  const cellGeneratorForByInstitutionalSectors = new TableInputGenerator(
+    CuProByInstitutionalSectors,
+    handleCuProByInstitutionalSectorsValueChange
+  );
   return (
     <div>
       <div>
@@ -403,22 +563,15 @@ const CuPro = ({ appValues }) => {
           Vaciar
         </Button>
         &nbsp;
-        <Button
-          variant="success"
-          onClick={() => setShowSaveByActivityModal(true)}
-        >
-          Guardar
-        </Button>
-        &nbsp;
-        <Button
-          variant="info"
-          onClick={() => {
-            setShowLoadByActivityModal(updateSavedCuPros());
-          }}
-        >
-          Cargar
-        </Button>
-        &nbsp;
+        <CrudModals
+          currentItem={CuProByActivity}
+          storageKey="cuProByActivity"
+          saveModalTitle="Guardar Cuenta de Producción por Actividad"
+          loadModalTitle="Cargar Cuenta de Producción por Actividad"
+          deleteModalTitle="Borrar Cuenta de Producción por Actividad"
+          deleteModalMessage="¿Está seguro que desea borrar la Cuenta de Producción por Actividad?"
+          itemSaver={saveCuProByActivityValues}
+        />
         <Button variant="warning" onClick={retrieveFromCouForByActivity}>
           Obtener valores desde el COU
         </Button>
@@ -463,111 +616,32 @@ const CuPro = ({ appValues }) => {
                 <strong>Producción por actividad</strong>
               </td>
               {branchesIndexes.map((idx) => {
-                return (
-                  <td key={`productionPerActivity_resource_branch${idx}}`}>
-                    <input
-                      className="invisible-input"
-                      type="number"
-                      value={
-                        CuProByActivity.productionPerActivity.resource[
-                          `branch${idx}`
-                        ] ?? ""
-                      }
-                      onChange={(e) => {
-                        handleCuProByActivityValueChange(
-                          e.target.value,
-                          `productionPerActivity.resource.branch${idx}`
-                        );
-                      }}
-                    />
-                  </td>
+                return cellGeneratorForByActivities.generate(
+                  `productionPerActivity.resource.branch${idx}`
                 );
               })}
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={
-                    CuProByActivity.productionPerActivity.resource.gov ?? ""
-                  }
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `productionPerActivity.resource.gov`
-                    );
-                  }}
-                />
-              </td>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={
-                    CuProByActivity.productionPerActivity.resource.total ?? ""
-                  }
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `productionPerActivity.resource.total`
-                    );
-                  }}
-                />
-              </td>
+              {cellGeneratorForByActivities.generate(
+                `productionPerActivity.resource.gov`
+              )}
+              {cellGeneratorForByActivities.generate(
+                `productionPerActivity.resource.total`
+              )}
             </tr>
 
             {/* Fila Consumo Intermedio */}
             <tr>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={
-                    CuProByActivity.intermediateConsumption.usage.total ?? ""
-                  }
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `intermediateConsumption.usage.total`
-                    );
-                  }}
-                />
-              </td>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={
-                    CuProByActivity.intermediateConsumption.usage.gov ?? ""
-                  }
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `intermediateConsumption.usage.gov`
-                    );
-                  }}
-                />
-              </td>
+              {cellGeneratorForByActivities.generate(
+                `intermediateConsumption.usage.total`
+              )}
+              {cellGeneratorForByActivities.generate(
+                `intermediateConsumption.usage.gov`
+              )}
               {branchesIndexes.toReversed().map((idx) => {
-                return (
-                  <td key={`intermediateConsumption_usage_${idx}}`}>
-                    <input
-                      className="invisible-input"
-                      type="number"
-                      value={
-                        CuProByActivity.intermediateConsumption.usage[
-                          `branch${idx}`
-                        ] ?? ""
-                      }
-                      onChange={(e) => {
-                        handleCuProByActivityValueChange(
-                          e.target.value,
-                          `intermediateConsumption.usage.branch${idx}`
-                        );
-                      }}
-                    />
-                  </td>
+                return cellGeneratorForByActivities.generate(
+                  `intermediateConsumption.usage.branch${idx}`
                 );
               })}
+              {}
               <td>
                 <strong>Consumo Intermedio</strong>
               </td>
@@ -580,50 +654,15 @@ const CuPro = ({ appValues }) => {
 
             {/* Fila Valor Agregado Bruto por Actividad */}
             <tr>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={CuProByActivity.vabPerActivity.usage.total ?? ""}
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `vabPerActivity.usage.total`
-                    );
-                  }}
-                />
-              </td>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={CuProByActivity.vabPerActivity.usage.gov ?? ""}
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `vabPerActivity.usage.gov`
-                    );
-                  }}
-                />
-              </td>
+              {cellGeneratorForByActivities.generate(
+                `vabPerActivity.usage.total`
+              )}
+              {cellGeneratorForByActivities.generate(
+                `vabPerActivity.usage.gov`
+              )}
               {branchesIndexes.toReversed().map((idx) => {
-                return (
-                  <td key={`vabPerActivity_usage${idx}}`}>
-                    <input
-                      className="invisible-input"
-                      type="number"
-                      value={
-                        CuProByActivity.vabPerActivity.usage[`branch${idx}`] ??
-                        ""
-                      }
-                      onChange={(e) => {
-                        handleCuProByActivityValueChange(
-                          e.target.value,
-                          `vabPerActivity.usage.branch${idx}`
-                        );
-                      }}
-                    />
-                  </td>
+                return cellGeneratorForByActivities.generate(
+                  `vabPerActivity.usage.branch${idx}`
                 );
               })}
               <td>
@@ -634,47 +673,11 @@ const CuPro = ({ appValues }) => {
 
             {/* Fila Consumo de Capital Fijo */}
             <tr>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={CuProByActivity.ckf.usage.total ?? ""}
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `ckf.usage.total`
-                    );
-                  }}
-                />
-              </td>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={CuProByActivity.ckf.usage.gov ?? ""}
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `ckf.usage.gov`
-                    );
-                  }}
-                />
-              </td>
+              {cellGeneratorForByActivities.generate(`ckf.usage.total`)}
+              {cellGeneratorForByActivities.generate(`ckf.usage.gov`)}
               {branchesIndexes.toReversed().map((idx) => {
-                return (
-                  <td key={`ckf_usage${idx}}`}>
-                    <input
-                      className="invisible-input"
-                      type="number"
-                      value={CuProByActivity.ckf.usage[`branch${idx}`] ?? ""}
-                      onChange={(e) => {
-                        handleCuProByActivityValueChange(
-                          e.target.value,
-                          `ckf.usage.branch${idx}`
-                        );
-                      }}
-                    />
-                  </td>
+                return cellGeneratorForByActivities.generate(
+                  `ckf.usage.branch${idx}`
                 );
               })}
               <td>
@@ -685,50 +688,15 @@ const CuPro = ({ appValues }) => {
 
             {/* Fila Valor Agregado Neto por Actividad */}
             <tr>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={CuProByActivity.vanPerActivity.usage.total ?? ""}
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `vanPerActivity.usage.total`
-                    );
-                  }}
-                />
-              </td>
-              <td>
-                <input
-                  className="invisible-input"
-                  type="number"
-                  value={CuProByActivity.vanPerActivity.usage.gov ?? ""}
-                  onChange={(e) => {
-                    handleCuProByActivityValueChange(
-                      e.target.value,
-                      `vanPerActivity.usage.gov`
-                    );
-                  }}
-                />
-              </td>
+              {cellGeneratorForByActivities.generate(
+                `vanPerActivity.usage.total`
+              )}
+              {cellGeneratorForByActivities.generate(
+                `vanPerActivity.usage.gov`
+              )}
               {branchesIndexes.toReversed().map((idx) => {
-                return (
-                  <td key={`vanPerActivity_usage${idx}}`}>
-                    <input
-                      className="invisible-input"
-                      type="number"
-                      value={
-                        CuProByActivity.vanPerActivity.usage[`branch${idx}`] ??
-                        ""
-                      }
-                      onChange={(e) => {
-                        handleCuProByActivityValueChange(
-                          e.target.value,
-                          `vanPerActivity.usage.branch${idx}`
-                        );
-                      }}
-                    />
-                  </td>
+                return cellGeneratorForByActivities.generate(
+                  `vanPerActivity.usage.branch${idx}`
                 );
               })}
               <td>
@@ -738,241 +706,178 @@ const CuPro = ({ appValues }) => {
             </tr>
           </tbody>
         </Table>
-        {showSaveByActivityModal && (
-          <Modal
-            show={showSaveByActivityModal}
-            onHide={handleCloseSaveByActivityModal}
-          >
-            <Modal.Header closeButton>
-              <Modal.Title>
-                Guardar Contenido de la Cuenta de Producción Por Actividades
-              </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <Form>
-                <Form.Group>
-                  <Form.Label>Nombre del archivo:</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Ingrese el nombre del archivo"
-                    value={fileNameByActivity}
-                    onChange={(e) => setFileNameByActivity(e.target.value)}
-                  />
-                </Form.Group>
-              </Form>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button
-                variant="secondary"
-                onClick={handleCloseSaveByActivityModal}
-              >
-                Cerrar
-              </Button>
-              <Button variant="primary" onClick={handleSaveByActivity}>
-                Guardar
-              </Button>
-            </Modal.Footer>
-          </Modal>
-        )}
-        {showLoadByActivityModal && (
-          <Modal
-            show={showLoadByActivityModal}
-            onHide={handleCloseLoadByActivityModal}
-          >
-            <Modal.Header closeButton>
-              <Modal.Title>
-                Cargar contenido a Cuenta de Produccion Por Actividad
-              </Modal.Title>
-            </Modal.Header>
-
-            <Modal.Body>
-              {savedCuProsByActivity.map((option, index) => (
-                <div key={index}>
-                  <Form.Check
-                    type="radio"
-                    value={option}
-                    checked={fileNameByActivity === option}
-                    onChange={(e) => setFileNameByActivity(e.target.value)}
-                    label={
-                      <span>
-                        {option} &nbsp;{" "}
-                        <strong
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            setOptionByActivityToDelete(option);
-                            setShowDeleteByActivity(true);
-                          }}
-                        >
-                          X
-                        </strong>
-                      </span>
-                    }
-                  />
-                  &nbsp;
-                </div>
-              ))}
-            </Modal.Body>
-
-            <Modal.Footer>
-              <Button
-                variant="secondary"
-                onClick={handleCloseLoadByActivityModal}
-              >
-                Cerrar
-              </Button>
-              <Button variant="primary" onClick={handleLoadByActivity}>
-                Cargar
-              </Button>
-            </Modal.Footer>
-          </Modal>
-        )}
-        {showDeleteByActivityModal && (
-          <Modal
-            show={showDeleteByActivityModal}
-            onHide={handleCloseDeleteByActivityModal}
-          >
-            <Modal.Header closeButton>
-              <Modal.Title>
-                Eliminar Cuenta de Producción por Actividad
-              </Modal.Title>
-            </Modal.Header>
-
-            <Modal.Body>
-              <p>
-                ¿Está seguro que desea eliminar esta Cuenta de Producción Por
-                Actividad?
-              </p>
-            </Modal.Body>
-
-            <Modal.Footer>
-              <Button
-                variant="secondary"
-                onClick={handleCloseDeleteByActivityModal}
-              >
-                Cerrar
-              </Button>
-              <Button variant="danger" onClick={handleDeleteByActivity}>
-                Eliminar
-              </Button>
-            </Modal.Footer>
-          </Modal>
-        )}
       </div>
-      {false && (
-        <div>
-          <h2>Por Sectores Institucionales</h2>
-          <Table
-            striped
-            bordered
-            hover
-            className="text-center align-middle mt-3 custom-table"
-          >
-            <thead>
-              <tr>
-                <th colSpan={5}>USOS</th>
-                <th rowSpan={2}>Transacciones y Otros Saldos</th>
-                <th colSpan={5}>RECURSOS</th>
-              </tr>
-              <tr>
-                <th>Total</th>
-                <th>Resto del Mundo</th>
-                <th>SubTotal</th>
-                <th>Gobierno</th>
-                <th>Sociedades</th>
-                <th>Sociedades</th>
-                <th>Gobierno</th>
-                <th>SubTotal</th>
-                <th>Resto del Mundo</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {DisabledCells("imports", 0, 5)}
-                <td>
-                  <strong>Importaciones de bienes y servicios</strong>
-                </td>
-                {DisabledCells("imports", 6, 3)}
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-                <td></td>
-                {DisabledCells("exports", 3, 3)}
-                <td>
-                  <strong>Exportaciones de bienes y servicios</strong>
-                </td>
-                {DisabledCells("exports", 6, 5)}
-              </tr>
-              <tr>
-                {DisabledCells("production", 0, 5)}
-                <td>
-                  <strong>Produccion</strong>
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <DisabledCell />
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-                <DisabledCell />
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>
-                  <strong>Consumo Intermedio</strong>
-                </td>
-                {DisabledCells("ci", 6, 5)}
-              </tr>
-              <tr>
-                <td></td>
-                <DisabledCell />
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>
-                  <strong>Valor Agregado Bruto</strong>
-                </td>
-                {DisabledCells("vab", 6, 5)}
-              </tr>
-              <tr>
-                <td></td>
-                <DisabledCell />
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>
-                  <strong>Consumo de Capital Fijo</strong>
-                </td>
-                {DisabledCells("ckf", 6, 5)}
-              </tr>
-              <tr>
-                <td></td>
-                <DisabledCell />
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>
-                  <strong>Valor Agregado Neto</strong>
-                </td>
-                {DisabledCells("van", 6, 5)}
-              </tr>
-              <tr>
-                <td></td>
-                <td></td>
-                {DisabledCells("sbsce", 3, 3)}
-                <td>
-                  <strong>Saldo de bienes y servicios con el exterior</strong>
-                </td>
-                {DisabledCells("sbsce", 6, 5)}
-              </tr>
-            </tbody>
-          </Table>
-        </div>
-      )}
+      <div>
+        <h2>Por Sectores Institucionales</h2>
+        <Button variant="primary" onClick={computeByInstitutionalSectors}>
+          Calcular
+        </Button>
+        &nbsp;
+        <Button variant="danger" onClick={emptyByInstitutionalSectors}>
+          Vaciar
+        </Button>
+        &nbsp;
+        <CrudModals
+          currentItem={CuProByInstitutionalSectors}
+          storageKey="cuProByInstitutionalSectors"
+          saveModalTitle="Guardar Cuenta de Producción por Sectores Institucionales"
+          loadModalTitle="Cargar Cuenta de Producción por Sectores Institucionales"
+          deleteModalTitle="Borrar Cuenta de Producción por Sectores Institucionales"
+          deleteModalMessage="¿Está seguro que desea borrar la Cuenta de Producción por Sectores Institucionales?"
+          itemSaver={saveCuProByInstitutionalSectorsValues}
+        />
+        &nbsp;
+        <Button
+          variant="warning"
+          onClick={retrieveFromCouForByInstitutionalSectors}
+        >
+          Obtener valores desde el COU
+        </Button>
+        <Table
+          striped
+          bordered
+          hover
+          className="text-center align-middle mt-3 custom-table"
+        >
+          <thead>
+            <tr>
+              <th colSpan={5}>USOS</th>
+              <th rowSpan={2}>Transacciones y Otros Saldos</th>
+              <th colSpan={5}>RECURSOS</th>
+            </tr>
+            <tr>
+              <th>Total</th>
+              <th>Resto del Mundo</th>
+              <th>SubTotal</th>
+              <th>Gobierno</th>
+              <th>Sociedades</th>
+              <th>Sociedades</th>
+              <th>Gobierno</th>
+              <th>SubTotal</th>
+              <th>Resto del Mundo</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {DisabledCells("imports", 0, 5)}
+              <td>
+                <strong>Importaciones de bienes y servicios</strong>
+              </td>
+              {DisabledCells("imports", 6, 3)}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "imports.resource.rm"
+              )}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "imports.resource.total"
+              )}
+            </tr>
+            <tr>
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "exports.usage.total"
+              )}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "exports.usage.rm"
+              )}
+              {DisabledCells("exports", 3, 3)}
+              <td>
+                <strong>Exportaciones de bienes y servicios</strong>
+              </td>
+              {DisabledCells("exports", 6, 5)}
+            </tr>
+            <tr>
+              {DisabledCells("production", 0, 5)}
+              <td>
+                <strong>Produccion</strong>
+              </td>
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "production.resource.society"
+              )}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "production.resource.gov"
+              )}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "production.resource.st"
+              )}
+              <DisabledCell />
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "production.resource.total"
+              )}
+            </tr>
+            <tr>
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "ci.usage.total"
+              )}
+              <DisabledCell />
+              {cellGeneratorForByInstitutionalSectors.generate("ci.usage.st")}
+              {cellGeneratorForByInstitutionalSectors.generate("ci.usage.gov")}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "ci.usage.society"
+              )}
+              <td>
+                <strong>Consumo Intermedio</strong>
+              </td>
+              {DisabledCells("ci", 6, 5)}
+            </tr>
+            <tr>
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "vab.usage.total"
+              )}
+              <DisabledCell />
+              {cellGeneratorForByInstitutionalSectors.generate("vab.usage.st")}
+              {cellGeneratorForByInstitutionalSectors.generate("vab.usage.gov")}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "vab.usage.society"
+              )}
+              <td>
+                <strong>Valor Agregado Bruto</strong>
+              </td>
+              {DisabledCells("vab", 6, 5)}
+            </tr>
+            <tr>
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "ckf.usage.total"
+              )}
+              <DisabledCell />
+              {cellGeneratorForByInstitutionalSectors.generate("ckf.usage.st")}
+              {cellGeneratorForByInstitutionalSectors.generate("ckf.usage.gov")}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "ckf.usage.society"
+              )}
+              <td>
+                <strong>Consumo de Capital Fijo</strong>
+              </td>
+              {DisabledCells("ckf", 6, 5)}
+            </tr>
+            <tr>
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "van.usage.total"
+              )}
+              <DisabledCell />
+              {cellGeneratorForByInstitutionalSectors.generate("van.usage.st")}
+              {cellGeneratorForByInstitutionalSectors.generate("van.usage.gov")}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "van.usage.society"
+              )}
+              <td>
+                <strong>Valor Agregado Neto</strong>
+              </td>
+              {DisabledCells("van", 6, 5)}
+            </tr>
+            <tr>
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "sbsx.usage.total"
+              )}
+              {cellGeneratorForByInstitutionalSectors.generate("sbsx.usage.rm")}
+              {DisabledCells("sbsx", 3, 3)}
+              <td>
+                <strong>Saldo de bienes y servicios con el exterior</strong>
+              </td>
+              {DisabledCells("sbsx", 6, 5)}
+            </tr>
+          </tbody>
+        </Table>
+      </div>
     </div>
   );
 };
