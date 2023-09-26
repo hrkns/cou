@@ -11,6 +11,8 @@ import solveEquation from "../shared/solveEquation";
 import shouldCompute from "../shared/shouldCompute";
 import TableInputGenerator from "./TableInputGenerator";
 import CrudModals from "./CrudModals";
+import setEquationsSubset from "../shared/setEquationsSubset";
+import solveEquations from "../shared/solveEquations";
 
 const CuGeI = ({ appValues }) => {
   const branches = appValues.branches;
@@ -71,71 +73,37 @@ const CuGeI = ({ appValues }) => {
     saveCuGeIByActivityValues(CuGeIByActivity);
   };
   const computeByActivity = () => {
-    console.log("Computing Income Generation Account by Activity values");
     const equations = {};
 
+    const vabEqualRaPlusTaxPlusEeb = (row, col) => {
+      if (row === "tax" && col === "gov") return null;
+      return [
+        row === "vabPerActivity" ? "x" : `vabPerActivity.resource.${col}`,
+        "=",
+        row === "ra" ? "x" : `ra.usage.${col}`,
+        "+",
+        col === "gov" ? null : row === "tax" ? "x" : `tax.usage.${col}`,
+        col === "gov" ? null : "+",
+        row === "eeb" ? "x" : `eeb.usage.${col}`,
+      ].filter((x) => x);
+    };
+
     Object.keys(emptyCuGeIByActivity).forEach((row) => {
-      // TODO: build equations for each row
+      setEquationsSubset(
+        branchesIndexes,
+        equations,
+        row,
+        row === "vabPerActivity" ? "resource" : "usage",
+        vabEqualRaPlusTaxPlusEeb
+      );
     });
 
-    let hasComputed;
-    let maxAmountOfIterations = 100;
-
-    do {
-      const cells = Object.keys(equations);
-      let index = 0;
-      hasComputed = false;
-
-      while (index < cells.length && !hasComputed) {
-        const targetCell = cells[index];
-        const equationsAssociatedToCell = equations[targetCell];
-        let amountOfEvaluatedEquations = 0;
-        console.log(`Solving ${targetCell}`);
-        while (
-          amountOfEvaluatedEquations < equationsAssociatedToCell.length &&
-          !hasComputed
-        ) {
-          if (
-            isEquationSolvable(
-              equationsAssociatedToCell[amountOfEvaluatedEquations],
-              CuGeIByActivity
-            )
-          ) {
-            console.log(
-              `Solving ${equationsAssociatedToCell[
-                amountOfEvaluatedEquations
-              ].join(" ")}`
-            );
-            const { leftSide, rightSide } = buildEquationSides(
-              equationsAssociatedToCell[amountOfEvaluatedEquations],
-              CuGeIByActivity
-            );
-            const val = solveEquation(leftSide, rightSide);
-            hasComputed = shouldCompute(CuGeIByActivity, val, targetCell);
-          } else {
-            console.log(
-              `Equation ${equationsAssociatedToCell[
-                amountOfEvaluatedEquations
-              ].join(" ")} is not solvable`
-            );
-          }
-
-          amountOfEvaluatedEquations++;
-        }
-
-        index++;
-      }
-
-      maxAmountOfIterations--;
-    } while (hasComputed && maxAmountOfIterations > 0);
-
-    if (maxAmountOfIterations === 0) {
-      alert(
-        "Se ha alcanzado el máximo número de iteraciones para calcular la Cuenta de Generación de Ingresos por Actividad"
-      );
-    }
-
-    saveCuGeIByActivityValues(CuGeIByActivity);
+    solveEquations(
+      equations,
+      CuGeIByActivity,
+      saveCuGeIByActivityValues,
+      "Cuenta de Generación de Ingresos por Actividad"
+    );
   };
   const emptyByActivity = () => {
     saveCuGeIByActivityValues(emptyCuGeIByActivity);
@@ -216,12 +184,8 @@ const CuGeI = ({ appValues }) => {
   );
   /******************************************************************************/
   const emptyCuGeIByInstitutionalSectors = {
-    sbsx: {
+    sbsxR: {
       resource: {
-        rm: null,
-        total: null,
-      },
-      usage: {
         rm: null,
         total: null,
       },
@@ -256,6 +220,12 @@ const CuGeI = ({ appValues }) => {
         total: null,
       },
     },
+    sbsxU: {
+      usage: {
+        rm: null,
+        total: null,
+      },
+    },
   };
   const storedCuGeIByInstitutionalSectors = getItem(
     "cuGeIByInstitutionalSectors"
@@ -281,6 +251,62 @@ const CuGeI = ({ appValues }) => {
     let hasComputed = false;
     let maxAmountOfIterations = 100;
 
+    const sbsxByRow = (row, side, col) => {
+      return [
+        [
+          col === "rm" ? "x" : `sbsxR.${side}.rm`,
+          "=",
+          col === "total" ? "x" : `sbsxU.${side}.total`,
+        ],
+      ];
+    };
+    const sbsxByCol = (row, side, col) => {
+      return [
+        [
+          row === "sbsxR" ? "x" : `sbsxR.resource.${col}`,
+          "=",
+          row === "sbsxU" ? "x" : `sbsxU.usage.${col}`,
+        ],
+      ];
+    };
+    const vabOrRaOrTaxOrEebByRow = (row, side, col) => {
+      const equation = [];
+      const equations = [];
+
+      if (col === "total") {
+        equation.push("x", "=", `${row}.${side}.st`);
+      } else {
+        equation.push(col === "society" ? "x" : `${row}.${side}.society`);
+        if (row !== "tax") {
+          equation.push("+");
+          equation.push(col === "gov" ? "x" : `${row}.${side}.gov`);
+        }
+        equation.push("=");
+        equation.push(col === "st" ? "x" : `${row}.${side}.st`);
+        equations.push(equation);
+        if (col === "st") {
+          equations.push([`x`, "=", `${row}.${side}.total`]);
+        }
+      }
+
+      return equations;
+    };
+    const vabOrRaOrTaxOrEebByCol = (row, side, col) => {
+      const equation = [];
+
+      equation.push(row === "vab" ? "x" : `vab.resource.${col}`);
+      equation.push("=");
+      equation.push(row === "ra" ? "x" : `ra.usage.${col}`);
+      if (col !== "gov") {
+        equation.push("+");
+        equation.push(row === "tax" ? "x" : `tax.usage.${col}`);
+      }
+      equation.push("+");
+      equation.push(row === "eeb" ? "x" : `eeb.usage.${col}`);
+
+      return [equation];
+    };
+
     do {
       hasComputed = false;
       const rows = Object.keys(emptyCuGeIByInstitutionalSectors);
@@ -292,27 +318,77 @@ const CuGeI = ({ appValues }) => {
         let cols;
         const equationsGenerators = [];
 
+        if (row === "sbsxR") {
+          side = "resource";
+          cols = ["rm", "total"];
+          equationsGenerators.push(sbsxByRow, sbsxByCol);
+        } else if (row === "vab") {
+          side = "resource";
+          cols = ["society", "gov", "st", "total"];
+          equationsGenerators.push(
+            vabOrRaOrTaxOrEebByRow,
+            vabOrRaOrTaxOrEebByCol
+          );
+        } else if (row === "ra") {
+          side = "usage";
+          cols = ["society", "gov", "st", "total"];
+          equationsGenerators.push(
+            vabOrRaOrTaxOrEebByRow,
+            vabOrRaOrTaxOrEebByCol
+          );
+        } else if (row === "tax") {
+          side = "usage";
+          cols = ["society", "st", "total"];
+          equationsGenerators.push(
+            vabOrRaOrTaxOrEebByRow,
+            vabOrRaOrTaxOrEebByCol
+          );
+        } else if (row === "eeb") {
+          side = "usage";
+          cols = ["society", "gov", "st", "total"];
+          equationsGenerators.push(
+            vabOrRaOrTaxOrEebByRow,
+            vabOrRaOrTaxOrEebByCol
+          );
+        } else if (row === "sbsxU") {
+          side = "usage";
+          cols = ["rm", "total"];
+          equationsGenerators.push(sbsxByRow, sbsxByCol);
+        }
+
         let iCols = 0;
-        while (iCols < cols.length && !hasComputed) {
+        while (iCols < cols?.length && !hasComputed) {
           const col = cols[iCols];
-          let iEquations = 0;
-          while (iEquations < equationsGenerators.length && !hasComputed) {
-            const equation = equationsGenerators[iEquations](col, row);
-            if (isEquationSolvable(equation, CuGeIByInstitutionalSectors)) {
-              console.log(`Solving ${equation.join(" ")}`);
-              const { leftSide, rightSide } = buildEquationSides(
-                equation,
-                CuGeIByInstitutionalSectors
-              );
-              hasComputed = shouldCompute(
-                CuGeIByInstitutionalSectors,
-                solveEquation(leftSide, rightSide),
-                `${row}.${side}.${col}`
-              );
-            } else {
-              console.log(`Equation ${equation.join(" ")} is not solvable`);
+          let iEquationsGenerators = 0;
+          while (
+            iEquationsGenerators < equationsGenerators.length &&
+            !hasComputed
+          ) {
+            const equations = equationsGenerators[iEquationsGenerators](
+              row,
+              side,
+              col
+            );
+            let iEquations = 0;
+            while (iEquations < equations.length && !hasComputed) {
+              const equation = equations[iEquations];
+              if (isEquationSolvable(equation, CuGeIByInstitutionalSectors)) {
+                console.log(`Solving ${equation.join(" ")}`);
+                const { leftSide, rightSide } = buildEquationSides(
+                  equation,
+                  CuGeIByInstitutionalSectors
+                );
+                hasComputed = shouldCompute(
+                  CuGeIByInstitutionalSectors,
+                  solveEquation(leftSide, rightSide),
+                  `${row}.${side}.${col}`
+                );
+              } else {
+                console.log(`Equation ${equation.join(" ")} is not solvable`);
+              }
+              iEquations++;
             }
-            iEquations++;
+            iEquationsGenerators++;
           }
           iCols++;
         }
@@ -342,10 +418,10 @@ const CuGeI = ({ appValues }) => {
         _.toNumber(appValues.cou.totalUses.finalUse.exports) -
         _.toNumber(appValues.cou.imports.total)
       );
-      CuGeIByInstitutionalSectors.sbsx.resource.rm = val;
-      CuGeIByInstitutionalSectors.sbsx.resource.total = val;
-      CuGeIByInstitutionalSectors.sbsx.usage.rm = val;
-      CuGeIByInstitutionalSectors.sbsx.usage.total = val;
+      CuGeIByInstitutionalSectors.sbsxR.resource.rm = val;
+      CuGeIByInstitutionalSectors.sbsxR.resource.total = val;
+      CuGeIByInstitutionalSectors.sbsxU.usage.rm = val;
+      CuGeIByInstitutionalSectors.sbsxU.usage.total = val;
     }
 
     // VAB
@@ -551,7 +627,7 @@ const CuGeI = ({ appValues }) => {
                 );
               })}
               <td>
-                <strong>Consumo de Capital Fijo</strong>
+                <strong>Excedente de Explotación Bruto</strong>
               </td>
               {DisabledCells(`usage_eeb_`, 5, branches.length + 2)}
             </tr>
@@ -611,16 +687,16 @@ const CuGeI = ({ appValues }) => {
           </thead>
           <tbody>
             <tr>
-              {DisabledCells(`sbsx.resource`, 0, 5)}
+              {DisabledCells(`sbsxR.resource`, 0, 5)}
               <td>
                 <strong>Saldo de bienes y servicios con el exterior</strong>
               </td>
-              {DisabledCells(`sbsx.resource`, 6, 3)}
+              {DisabledCells(`sbsxR.resource`, 6, 3)}
               {cellGeneratorForByInstitutionalSectors.generate(
-                "sbsx.resource.rm"
+                "sbsxR.resource.rm"
               )}
               {cellGeneratorForByInstitutionalSectors.generate(
-                "sbsx.resource.total"
+                "sbsxR.resource.total"
               )}
             </tr>
             <tr>
@@ -689,9 +765,11 @@ const CuGeI = ({ appValues }) => {
             </tr>
             <tr>
               {cellGeneratorForByInstitutionalSectors.generate(
-                "sbsx.usage.total"
+                "sbsxU.usage.total"
               )}
-              {cellGeneratorForByInstitutionalSectors.generate("sbsx.usage.rm")}
+              {cellGeneratorForByInstitutionalSectors.generate(
+                "sbsxU.usage.rm"
+              )}
               {DisabledCells(`sbsx`, 2, 3)}
               <td>
                 <strong>Saldo de bienes y servicios con el exterior</strong>
