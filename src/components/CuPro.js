@@ -10,12 +10,15 @@ import buildEquationSides from "../shared/buildEquationSides";
 import shouldCompute from "../shared/shouldCompute";
 import TableInputGenerator from "./TableInputGenerator";
 import CrudModals from "./CrudModals";
+import hasContent from "../shared/hasContent";
+import setEquationsSubset from "../shared/setEquationsSubset";
+import solveEquations from "../shared/solveEquations";
 
 const CuPro = ({ appValues }) => {
   const branches = appValues.branches;
   const branchesIndexes = _.range(1, appValues.branches.length + 1);
   /******************************************************************************/
-  const emptyCuproByActivity = {
+  const emptyCuProByActivity = {
     productionPerActivity: {
       resource: {
         ...branchesIndexes.reduce((acc, idx) => {
@@ -69,7 +72,7 @@ const CuPro = ({ appValues }) => {
   };
   const storedCuProByActivity = getItem("cuProByActivity");
   const [CuProByActivity, setCuProByActivity] = useState(
-    _.cloneDeep(storedCuProByActivity || emptyCuproByActivity)
+    _.cloneDeep(storedCuProByActivity || emptyCuProByActivity)
   );
   const saveCuProByActivityValues = (content) => {
     setCuProByActivity(_.cloneDeep(content));
@@ -80,7 +83,6 @@ const CuPro = ({ appValues }) => {
     saveCuProByActivityValues(CuProByActivity);
   };
   const computeByActivity = () => {
-    console.log("Computing Production Account by Activity values");
     const equations = {};
 
     const generateEquationBasedOnBranches = (row, col, side) => {
@@ -137,31 +139,21 @@ const CuPro = ({ appValues }) => {
         row === "vabPerActivity" ? "x" : `vabPerActivity.usage.${col}`,
       ];
     };
-    const setEquationsSubset = (row, side, equationBuilder) => {
-      branchesIndexes.forEach((xBranch) => {
-        equations[`${row}.${side}.branch${xBranch}`] =
-          equations[`${row}.${side}.branch${xBranch}`] || [];
-        equations[`${row}.${side}.branch${xBranch}`].push(
-          equationBuilder(row, `branch${xBranch}`, side)
-        );
-      });
-      equations[`${row}.${side}.gov`] = equations[`${row}.${side}.gov`] || [];
-      equations[`${row}.${side}.gov`].push(equationBuilder(row, "gov", side));
-      equations[`${row}.${side}.total`] =
-        equations[`${row}.${side}.total`] || [];
-      equations[`${row}.${side}.total`].push(
-        equationBuilder(row, "total", side)
-      );
-    };
 
-    Object.keys(emptyCuproByActivity).forEach((row) => {
+    Object.keys(emptyCuProByActivity).forEach((row) => {
       if (
         row === "vanPerActivity" ||
         row === "ckf" ||
         row === "vabPerActivity" ||
         row === "intermediateConsumption"
       ) {
-        setEquationsSubset(row, "usage", generateEquationBasedOnBranches);
+        setEquationsSubset(
+          branchesIndexes,
+          equations,
+          row,
+          "usage",
+          generateEquationBasedOnBranches
+        );
 
         if (
           row === "vanPerActivity" ||
@@ -169,6 +161,8 @@ const CuPro = ({ appValues }) => {
           row === "vabPerActivity"
         ) {
           setEquationsSubset(
+            branchesIndexes,
+            equations,
             row,
             "usage",
             generateEquationInvolvingVanAndCkfAndVab
@@ -181,6 +175,8 @@ const CuPro = ({ appValues }) => {
           row === "intermediateConsumption"
         ) {
           setEquationsSubset(
+            branchesIndexes,
+            equations,
             row,
             "usage",
             generateEquationInvolvingVanAndCkfAndCiAndProd
@@ -189,6 +185,8 @@ const CuPro = ({ appValues }) => {
 
         if (row === "vabPerActivity" || row === "intermediateConsumption") {
           setEquationsSubset(
+            branchesIndexes,
+            equations,
             row,
             "usage",
             generateEquationInvolvingVabAndCiAndProd
@@ -196,6 +194,8 @@ const CuPro = ({ appValues }) => {
         }
       } else {
         setEquationsSubset(
+          branchesIndexes,
+          equations,
           row,
           "resource",
           generateEquationInvolvingVabAndCiAndProd
@@ -203,67 +203,15 @@ const CuPro = ({ appValues }) => {
       }
     });
 
-    let hasComputed;
-    let maxAmountOfIterations = 100;
-
-    do {
-      const cells = Object.keys(equations);
-      let index = 0;
-      hasComputed = false;
-
-      while (index < cells.length && !hasComputed) {
-        const targetCell = cells[index];
-        const equationsAssociatedToCell = equations[targetCell];
-        let amountOfEvaluatedEquations = 0;
-        console.log(`Solving ${targetCell}`);
-        while (
-          amountOfEvaluatedEquations < equationsAssociatedToCell.length &&
-          !hasComputed
-        ) {
-          if (
-            isEquationSolvable(
-              equationsAssociatedToCell[amountOfEvaluatedEquations],
-              CuProByActivity
-            )
-          ) {
-            console.log(
-              `Solving ${equationsAssociatedToCell[
-                amountOfEvaluatedEquations
-              ].join(" ")}`
-            );
-            const { leftSide, rightSide } = buildEquationSides(
-              equationsAssociatedToCell[amountOfEvaluatedEquations],
-              CuProByActivity
-            );
-            const val = solveEquation(leftSide, rightSide);
-            hasComputed = shouldCompute(CuProByActivity, val, targetCell);
-          } else {
-            console.log(
-              `Equation ${equationsAssociatedToCell[
-                amountOfEvaluatedEquations
-              ].join(" ")} is not solvable`
-            );
-          }
-
-          amountOfEvaluatedEquations++;
-        }
-
-        index++;
-      }
-
-      maxAmountOfIterations--;
-    } while (hasComputed && maxAmountOfIterations > 0);
-
-    if (maxAmountOfIterations === 0) {
-      alert(
-        "Se ha alcanzado el máximo número de iteraciones para calcular la Cuenta de Producción por Actividad"
-      );
-    }
-
-    saveCuProByActivityValues(CuProByActivity);
+    solveEquations(
+      equations,
+      CuProByActivity,
+      saveCuProByActivityValues,
+      "Cuenta de Producción por Actividad"
+    );
   };
   const emptyByActivity = () => {
-    saveCuProByActivityValues(emptyCuproByActivity);
+    saveCuProByActivityValues(emptyCuProByActivity);
   };
   const retrieveFromCouForByActivity = () => {
     // retrieve values from Production row
@@ -390,31 +338,31 @@ const CuPro = ({ appValues }) => {
   };
   const computeByInstitutionalSectors = () => {
     console.log("Computing Production Account by Institutional Sectors values");
-    const equationInvolvingImportsAndExportsAndSbsx = (col, variable) => {
+    const equationInvolvingImportsAndExportsAndSbsx = (row, side, col) => {
       return [
-        variable === "imports" ? "x" : `imports.resource.${col}`,
+        row === "imports" ? "x" : `imports.resource.${col}`,
         "-",
-        variable === "exports" ? "x" : `exports.usage.${col}`,
+        row === "exports" ? "x" : `exports.usage.${col}`,
         "=",
-        variable === "sbsx" ? "x" : `sbsx.usage.${col}`,
+        row === "sbsx" ? "x" : `sbsx.usage.${col}`,
       ];
     };
-    const equationInvolvingProductionAndCiAndVab = (col, variable) => {
+    const equationInvolvingProductionAndCiAndVab = (row, side, col) => {
       return [
-        variable === "production" ? "x" : `production.resource.${col}`,
+        row === "production" ? "x" : `production.resource.${col}`,
         "-",
-        variable === "ci" ? "x" : `ci.usage.${col}`,
+        row === "ci" ? "x" : `ci.usage.${col}`,
         "=",
-        variable === "vab" ? "x" : `vab.usage.${col}`,
+        row === "vab" ? "x" : `vab.usage.${col}`,
       ];
     };
-    const equationInvolvingVabAndCkfAndVan = (col, variable) => {
+    const equationInvolvingVabAndCkfAndVan = (row, side, col) => {
       return [
-        variable === "vab" ? "x" : `vab.usage.${col}`,
+        row === "vab" ? "x" : `vab.usage.${col}`,
         "-",
-        variable === "ckf" ? "x" : `ckf.usage.${col}`,
+        row === "ckf" ? "x" : `ckf.usage.${col}`,
         "=",
-        variable === "van" ? "x" : `van.usage.${col}`,
+        row === "van" ? "x" : `van.usage.${col}`,
       ];
     };
     let hasComputed = false;
@@ -456,7 +404,7 @@ const CuPro = ({ appValues }) => {
           const col = cols[iCols];
           let iEquations = 0;
           while (iEquations < equationsGenerators.length && !hasComputed) {
-            const equation = equationsGenerators[iEquations](col, row);
+            const equation = equationsGenerators[iEquations](row, side, col);
             if (isEquationSolvable(equation, CuProByInstitutionalSectors)) {
               console.log(`Solving ${equation.join(" ")}`);
               const { leftSide, rightSide } = buildEquationSides(
@@ -500,44 +448,68 @@ const CuPro = ({ appValues }) => {
       appValues.cou.totalUses.finalUse.exports;
     CuProByInstitutionalSectors.exports.usage.total =
       appValues.cou.totalUses.finalUse.exports;
-    CuProByInstitutionalSectors.production.resource.society = _.sum(
-      branchesIndexes.map((idx) =>
-        _.toNumber(appValues.cou.production.intermediateUse[`branch${idx}`])
+    if (
+      _.every(branchesIndexes, (idx) =>
+        hasContent(appValues.cou.production.intermediateUse[`branch${idx}`])
       )
-    );
+    ) {
+      CuProByInstitutionalSectors.production.resource.society = _.sum(
+        branchesIndexes.map((idx) =>
+          _.toNumber(appValues.cou.production.intermediateUse[`branch${idx}`])
+        )
+      );
+    }
     CuProByInstitutionalSectors.production.resource.gov =
       appValues.cou.production.intermediateUse.gov;
     CuProByInstitutionalSectors.production.resource.st =
       appValues.cou.production.intermediateUse.st;
     CuProByInstitutionalSectors.production.resource.total =
       appValues.cou.production.intermediateUse.st;
-    CuProByInstitutionalSectors.ci.usage.society = _.sum(
-      branchesIndexes.map((idx) =>
-        _.toNumber(appValues.cou.totalUses.intermediateUse[`branch${idx}`])
+    if (
+      _.every(branchesIndexes, (idx) =>
+        hasContent(appValues.cou.totalUses.intermediateUse[`branch${idx}`])
       )
-    );
+    ) {
+      CuProByInstitutionalSectors.ci.usage.society = _.sum(
+        branchesIndexes.map((idx) =>
+          _.toNumber(appValues.cou.totalUses.intermediateUse[`branch${idx}`])
+        )
+      );
+    }
     CuProByInstitutionalSectors.ci.usage.gov =
       appValues.cou.totalUses.intermediateUse.gov;
     CuProByInstitutionalSectors.ci.usage.st =
       appValues.cou.totalUses.intermediateUse.st;
     CuProByInstitutionalSectors.ci.usage.total =
       appValues.cou.totalUses.intermediateUse.st;
-    CuProByInstitutionalSectors.vab.usage.society = _.sum(
-      branchesIndexes.map((idx) =>
-        _.toNumber(appValues.cou.vab.intermediateUse[`branch${idx}`])
+    if (
+      _.every(branchesIndexes, (idx) =>
+        hasContent(appValues.cou.vab.intermediateUse[`branch${idx}`])
       )
-    );
+    ) {
+      CuProByInstitutionalSectors.vab.usage.society = _.sum(
+        branchesIndexes.map((idx) =>
+          _.toNumber(appValues.cou.vab.intermediateUse[`branch${idx}`])
+        )
+      );
+    }
     CuProByInstitutionalSectors.vab.usage.gov =
       appValues.cou.vab.intermediateUse.gov;
     CuProByInstitutionalSectors.vab.usage.st =
       appValues.cou.vab.intermediateUse.st;
     CuProByInstitutionalSectors.vab.usage.total =
       appValues.cou.vab.intermediateUse.st;
-    CuProByInstitutionalSectors.ckf.usage.society = _.sum(
-      branchesIndexes.map((idx) =>
-        _.toNumber(appValues.cou.ckf.intermediateUse[`branch${idx}`])
+    if (
+      _.every(branchesIndexes, (idx) =>
+        hasContent(appValues.cou.ckf.intermediateUse[`branch${idx}`])
       )
-    );
+    ) {
+      CuProByInstitutionalSectors.ckf.usage.society = _.sum(
+        branchesIndexes.map((idx) =>
+          _.toNumber(appValues.cou.ckf.intermediateUse[`branch${idx}`])
+        )
+      );
+    }
     CuProByInstitutionalSectors.ckf.usage.gov =
       appValues.cou.ckf.intermediateUse.gov;
     CuProByInstitutionalSectors.ckf.usage.st =
@@ -641,7 +613,6 @@ const CuPro = ({ appValues }) => {
                   `intermediateConsumption.usage.branch${idx}`
                 );
               })}
-              {}
               <td>
                 <strong>Consumo Intermedio</strong>
               </td>
