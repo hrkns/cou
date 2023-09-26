@@ -10,12 +10,13 @@ import buildEquationSides from "../shared/buildEquationSides";
 import shouldCompute from "../shared/shouldCompute";
 import TableInputGenerator from "./TableInputGenerator";
 import CrudModals from "./CrudModals";
+import hasContent from "../shared/hasContent";
 
 const CuPro = ({ appValues }) => {
   const branches = appValues.branches;
   const branchesIndexes = _.range(1, appValues.branches.length + 1);
   /******************************************************************************/
-  const emptyCuproByActivity = {
+  const emptyCuProByActivity = {
     productionPerActivity: {
       resource: {
         ...branchesIndexes.reduce((acc, idx) => {
@@ -69,7 +70,7 @@ const CuPro = ({ appValues }) => {
   };
   const storedCuProByActivity = getItem("cuProByActivity");
   const [CuProByActivity, setCuProByActivity] = useState(
-    _.cloneDeep(storedCuProByActivity || emptyCuproByActivity)
+    _.cloneDeep(storedCuProByActivity || emptyCuProByActivity)
   );
   const saveCuProByActivityValues = (content) => {
     setCuProByActivity(_.cloneDeep(content));
@@ -154,7 +155,7 @@ const CuPro = ({ appValues }) => {
       );
     };
 
-    Object.keys(emptyCuproByActivity).forEach((row) => {
+    Object.keys(emptyCuProByActivity).forEach((row) => {
       if (
         row === "vanPerActivity" ||
         row === "ckf" ||
@@ -263,7 +264,7 @@ const CuPro = ({ appValues }) => {
     saveCuProByActivityValues(CuProByActivity);
   };
   const emptyByActivity = () => {
-    saveCuProByActivityValues(emptyCuproByActivity);
+    saveCuProByActivityValues(emptyCuProByActivity);
   };
   const retrieveFromCouForByActivity = () => {
     // retrieve values from Production row
@@ -500,44 +501,68 @@ const CuPro = ({ appValues }) => {
       appValues.cou.totalUses.finalUse.exports;
     CuProByInstitutionalSectors.exports.usage.total =
       appValues.cou.totalUses.finalUse.exports;
-    CuProByInstitutionalSectors.production.resource.society = _.sum(
-      branchesIndexes.map((idx) =>
-        _.toNumber(appValues.cou.production.intermediateUse[`branch${idx}`])
+    if (
+      _.every(branchesIndexes, (idx) =>
+        hasContent(appValues.cou.production.intermediateUse[`branch${idx}`])
       )
-    );
+    ) {
+      CuProByInstitutionalSectors.production.resource.society = _.sum(
+        branchesIndexes.map((idx) =>
+          _.toNumber(appValues.cou.production.intermediateUse[`branch${idx}`])
+        )
+      );
+    }
     CuProByInstitutionalSectors.production.resource.gov =
       appValues.cou.production.intermediateUse.gov;
     CuProByInstitutionalSectors.production.resource.st =
       appValues.cou.production.intermediateUse.st;
     CuProByInstitutionalSectors.production.resource.total =
       appValues.cou.production.intermediateUse.st;
-    CuProByInstitutionalSectors.ci.usage.society = _.sum(
-      branchesIndexes.map((idx) =>
-        _.toNumber(appValues.cou.totalUses.intermediateUse[`branch${idx}`])
+    if (
+      _.every(branchesIndexes, (idx) =>
+        hasContent(appValues.cou.totalUses.intermediateUse[`branch${idx}`])
       )
-    );
+    ) {
+      CuProByInstitutionalSectors.ci.usage.society = _.sum(
+        branchesIndexes.map((idx) =>
+          _.toNumber(appValues.cou.totalUses.intermediateUse[`branch${idx}`])
+        )
+      );
+    }
     CuProByInstitutionalSectors.ci.usage.gov =
       appValues.cou.totalUses.intermediateUse.gov;
     CuProByInstitutionalSectors.ci.usage.st =
       appValues.cou.totalUses.intermediateUse.st;
     CuProByInstitutionalSectors.ci.usage.total =
       appValues.cou.totalUses.intermediateUse.st;
-    CuProByInstitutionalSectors.vab.usage.society = _.sum(
-      branchesIndexes.map((idx) =>
-        _.toNumber(appValues.cou.vab.intermediateUse[`branch${idx}`])
+    if (
+      _.every(branchesIndexes, (idx) =>
+        hasContent(appValues.cou.vab.intermediateUse[`branch${idx}`])
       )
-    );
+    ) {
+      CuProByInstitutionalSectors.vab.usage.society = _.sum(
+        branchesIndexes.map((idx) =>
+          _.toNumber(appValues.cou.vab.intermediateUse[`branch${idx}`])
+        )
+      );
+    }
     CuProByInstitutionalSectors.vab.usage.gov =
       appValues.cou.vab.intermediateUse.gov;
     CuProByInstitutionalSectors.vab.usage.st =
       appValues.cou.vab.intermediateUse.st;
     CuProByInstitutionalSectors.vab.usage.total =
       appValues.cou.vab.intermediateUse.st;
-    CuProByInstitutionalSectors.ckf.usage.society = _.sum(
-      branchesIndexes.map((idx) =>
-        _.toNumber(appValues.cou.ckf.intermediateUse[`branch${idx}`])
+    if (
+      _.every(branchesIndexes, (idx) =>
+        hasContent(appValues.cou.ckf.intermediateUse[`branch${idx}`])
       )
-    );
+    ) {
+      CuProByInstitutionalSectors.ckf.usage.society = _.sum(
+        branchesIndexes.map((idx) =>
+          _.toNumber(appValues.cou.ckf.intermediateUse[`branch${idx}`])
+        )
+      );
+    }
     CuProByInstitutionalSectors.ckf.usage.gov =
       appValues.cou.ckf.intermediateUse.gov;
     CuProByInstitutionalSectors.ckf.usage.st =
@@ -641,7 +666,6 @@ const CuPro = ({ appValues }) => {
                   `intermediateConsumption.usage.branch${idx}`
                 );
               })}
-              {}
               <td>
                 <strong>Consumo Intermedio</strong>
               </td>

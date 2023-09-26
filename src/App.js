@@ -102,21 +102,19 @@ const App = () => {
           </Accordion.Body>
         </Accordion.Item>
         {/* Cuenta de Generación de Ingresos */}
-        {false && (
-          <Accordion.Item
-            eventKey="2"
-            style={{
-              overflowX: "auto",
-            }}
-          >
-            <Accordion.Header>
-              <h1>Cuenta de Generación de Ingresos</h1>
-            </Accordion.Header>
-            <Accordion.Body>
-              <CuGeI appValues={appValues} setAppValues={setAppValues} />
-            </Accordion.Body>
-          </Accordion.Item>
-        )}
+        <Accordion.Item
+          eventKey="2"
+          style={{
+            overflowX: "auto",
+          }}
+        >
+          <Accordion.Header>
+            <h1>Cuenta de Generación de Ingresos</h1>
+          </Accordion.Header>
+          <Accordion.Body>
+            <CuGeI appValues={appValues} setAppValues={setAppValues} />
+          </Accordion.Body>
+        </Accordion.Item>
         {/* Cuenta de Asignación y Distribución del Ingreso */}
         {false && (
           <Accordion.Item
