@@ -246,7 +246,7 @@ const CuGeI = ({ appValues }) => {
   };
   const computeByInstitutionalSectors = () => {
     console.log(
-      "Computing Income Generation Account by Institutional Sectors values"
+      "Calculando valores de Cuenta de Generación de Ingresos por Sectores Institucionales"
     );
     const sbsxByRow = (row, side, col) => {
       return [
@@ -501,12 +501,11 @@ const CuGeI = ({ appValues }) => {
 
     saveCuGeIByInstitutionalSectorsValues(CuGeIByInstitutionalSectors);
   };
-
   const cellGeneratorForByInstitutionalSectors = new TableInputGenerator(
     CuGeIByInstitutionalSectors,
     handleCuGeIByInstitutionalSectorsValueChange
   );
-
+  /******************************************************************************/
   return (
     <div>
       <div>
