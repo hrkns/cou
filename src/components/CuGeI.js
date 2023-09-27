@@ -248,9 +248,6 @@ const CuGeI = ({ appValues }) => {
     console.log(
       "Computing Income Generation Account by Institutional Sectors values"
     );
-    let hasComputed = false;
-    let maxAmountOfIterations = 100;
-
     const sbsxByRow = (row, side, col) => {
       return [
         [
@@ -306,18 +303,17 @@ const CuGeI = ({ appValues }) => {
 
       return [equation];
     };
-
+    let hasComputed = false;
+    let maxAmountOfIterations = 100;
     do {
       hasComputed = false;
       const rows = Object.keys(emptyCuGeIByInstitutionalSectors);
       let iRows = 0;
-
       while (iRows < rows.length && !hasComputed) {
         const row = rows[iRows];
         let side;
         let cols;
         const equationsGenerators = [];
-
         if (row === "sbsxR") {
           side = "resource";
           cols = ["rm", "total"];
@@ -355,9 +351,8 @@ const CuGeI = ({ appValues }) => {
           cols = ["rm", "total"];
           equationsGenerators.push(sbsxByRow, sbsxByCol);
         }
-
         let iCols = 0;
-        while (iCols < cols?.length && !hasComputed) {
+        while (iCols < cols.length && !hasComputed) {
           const col = cols[iCols];
           let iEquationsGenerators = 0;
           while (
@@ -396,13 +391,11 @@ const CuGeI = ({ appValues }) => {
       }
       maxAmountOfIterations--;
     } while (hasComputed && maxAmountOfIterations > 0);
-
     if (maxAmountOfIterations === 0) {
       alert(
         "Se ha alcanzado el máximo número de iteraciones para calcular la Cuenta de Generación de Ingresos por Sectores Institucionales"
       );
     }
-
     saveCuGeIByInstitutionalSectorsValues(CuGeIByInstitutionalSectors);
   };
   const emptyByInstitutionalSectors = () => {

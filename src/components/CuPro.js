@@ -339,46 +339,68 @@ const CuPro = ({ appValues }) => {
   const computeByInstitutionalSectors = () => {
     console.log("Computing Production Account by Institutional Sectors values");
     const equationInvolvingImportsAndExportsAndSbsx = (row, side, col) => {
-      return [
+      const equations = [];
+      equations.push([
         row === "imports" ? "x" : `imports.resource.${col}`,
         "-",
         row === "exports" ? "x" : `exports.usage.${col}`,
         "=",
         row === "sbsx" ? "x" : `sbsx.usage.${col}`,
-      ];
+      ]);
+      equations.push([
+        col === "rm" ? "x" : `${row}.${side}.rm`,
+        "=",
+        col === "total" ? "x" : `${row}.${side}.total`,
+      ]);
+      return equations;
     };
     const equationInvolvingProductionAndCiAndVab = (row, side, col) => {
-      return [
+      const equations = [];
+      if (col === "total") {
+        equations.push([
+          col === "total" ? "x" : `${row}.${side}.total`,
+          "=",
+          col === "st" ? "x" : `${row}.${side}.st`,
+        ]);
+      }
+      equations.push([
         row === "production" ? "x" : `production.resource.${col}`,
         "-",
         row === "ci" ? "x" : `ci.usage.${col}`,
         "=",
         row === "vab" ? "x" : `vab.usage.${col}`,
-      ];
+      ]);
+      return equations;
     };
     const equationInvolvingVabAndCkfAndVan = (row, side, col) => {
-      return [
+      const equations = [];
+      if (col === "total") {
+        equations.push([
+          col === "total" ? "x" : `${row}.${side}.total`,
+          "=",
+          col === "st" ? "x" : `${row}.${side}.st`,
+        ]);
+      }
+      equations.push([
         row === "vab" ? "x" : `vab.usage.${col}`,
         "-",
         row === "ckf" ? "x" : `ckf.usage.${col}`,
         "=",
         row === "van" ? "x" : `van.usage.${col}`,
-      ];
+      ]);
+      return equations;
     };
     let hasComputed = false;
     let maxAmountOfIterations = 100;
-
     do {
       hasComputed = false;
       const rows = Object.keys(emptyCuproByInstitutionalSectors);
       let iRows = 0;
-
       while (iRows < rows.length && !hasComputed) {
         const row = rows[iRows];
         let side;
         let cols;
         const equationsGenerators = [];
-
         if (row === "imports" || row === "exports" || row === "sbsx") {
           side = row === "imports" ? "resource" : "usage";
           cols = ["rm", "total"];
@@ -402,24 +424,36 @@ const CuPro = ({ appValues }) => {
         let iCols = 0;
         while (iCols < cols.length && !hasComputed) {
           const col = cols[iCols];
-          let iEquations = 0;
-          while (iEquations < equationsGenerators.length && !hasComputed) {
-            const equation = equationsGenerators[iEquations](row, side, col);
-            if (isEquationSolvable(equation, CuProByInstitutionalSectors)) {
-              console.log(`Solving ${equation.join(" ")}`);
-              const { leftSide, rightSide } = buildEquationSides(
-                equation,
-                CuProByInstitutionalSectors
-              );
-              hasComputed = shouldCompute(
-                CuProByInstitutionalSectors,
-                solveEquation(leftSide, rightSide),
-                `${row}.${side}.${col}`
-              );
-            } else {
-              console.log(`Equation ${equation.join(" ")} is not solvable`);
+          let iEquationsGenerators = 0;
+          while (
+            iEquationsGenerators < equationsGenerators.length &&
+            !hasComputed
+          ) {
+            const equations = equationsGenerators[iEquationsGenerators](
+              row,
+              side,
+              col
+            );
+            let iEquations = 0;
+            while (iEquations < equations.length && !hasComputed) {
+              const equation = equations[iEquations];
+              if (isEquationSolvable(equation, CuProByInstitutionalSectors)) {
+                console.log(`Solving ${equation.join(" ")}`);
+                const { leftSide, rightSide } = buildEquationSides(
+                  equation,
+                  CuProByInstitutionalSectors
+                );
+                hasComputed = shouldCompute(
+                  CuProByInstitutionalSectors,
+                  solveEquation(leftSide, rightSide),
+                  `${row}.${side}.${col}`
+                );
+              } else {
+                console.log(`Equation ${equation.join(" ")} is not solvable`);
+              }
+              iEquations++;
             }
-            iEquations++;
+            iEquationsGenerators++;
           }
           iCols++;
         }
@@ -427,13 +461,11 @@ const CuPro = ({ appValues }) => {
       }
       maxAmountOfIterations--;
     } while (hasComputed && maxAmountOfIterations > 0);
-
     if (maxAmountOfIterations === 0) {
       alert(
         "Se ha alcanzado el máximo número de iteraciones para calcular la Cuenta de Producción por Sectores Institucionales"
       );
     }
-
     saveCuProByInstitutionalSectorsValues(CuProByInstitutionalSectors);
   };
   const emptyByInstitutionalSectors = () => {
