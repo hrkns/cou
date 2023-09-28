@@ -130,11 +130,14 @@ const CuADI = ({ appValues }) => {
     _.set(CuADIByInstitutionalSectors, path, value);
     savecuADIByInstitutionalSectorsValues(CuADIByInstitutionalSectors);
   };
+  const gen = (row, side, col, currentCol) => {
+    return col === currentCol ? "x" : `${row}.${side}.${currentCol}`;
+  };
+
   const computeByInstitutionalSectors = () => {
     console.log(
       "Calculando valores de Cuenta de Asignación y Distribución de Ingresos por Sectores Institucionales"
     );
-    // TODO: customize this segment when copying file content to another (build equations generators)
     let hasComputed = false;
     let maxAmountOfIterations = 100;
     do {
@@ -143,58 +146,348 @@ const CuADI = ({ appValues }) => {
       let iRows = 0;
       while (iRows < rows.length && !hasComputed) {
         const row = rows[iRows];
-        let side;
+        let sides;
         let cols;
         const equationsGenerators = [];
         // TODO: customize this segment when copying file content to another (build assignation of equations generators according to current row)
-
         if (row === "sbsx") {
+          sides = ["resource"];
+          cols = [["rm", "total"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            // adding generators of equations based on row calculations
+            equations.push([
+              gen(row, side, col, "rm"),
+              "=",
+              gen(row, side, col, "total"),
+            ]);
+            return equations;
+          });
         } else if (row === "eeb") {
-        } else if (row === "ra") {
-        } else if (row === "tax") {
-        } else if (row === "rp") {
-        } else if (row === "cs") {
-        } else if (row === "ps") {
-        } else if (row === "otc") {
-        } else if (row === "idb") {
-        } else if (row === "scx") {
-        }
-
-        let iCols = 0;
-        while (iCols < cols.length && !hasComputed) {
-          const col = cols[iCols];
-          let iEquationsGenerators = 0;
-          while (
-            iEquationsGenerators < equationsGenerators.length &&
-            !hasComputed
-          ) {
-            const equations = equationsGenerators[iEquationsGenerators](
-              row,
-              side,
-              col
-            );
-            let iEquations = 0;
-            while (iEquations < equations.length && !hasComputed) {
-              const equation = equations[iEquations];
-              if (isEquationSolvable(equation, CuADIByInstitutionalSectors)) {
-                console.log(`Solving ${equation.join(" ")}`);
-                const { leftSide, rightSide } = buildEquationSides(
-                  equation,
-                  CuADIByInstitutionalSectors
-                );
-                hasComputed = shouldCompute(
-                  CuADIByInstitutionalSectors,
-                  solveEquation(leftSide, rightSide),
-                  `${row}.${side}.${col}`
-                );
-              } else {
-                console.log(`Equation ${equation.join(" ")} is not solvable`);
-              }
-              iEquations++;
+          sides = ["resource"];
+          cols = [["society", "gov", "st", "total"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            // adding generators of equations based on row calculations
+            if (col === "society" || col === "gov" || col === "st") {
+              equations.push([
+                gen(row, side, col, "society"),
+                "+",
+                gen(row, side, col, "gov"),
+                "=",
+                gen(row, side, col, "st"),
+              ]);
             }
-            iEquationsGenerators++;
+            if (col === "st" || col === "total") {
+              equations.push([
+                gen(row, side, col, "st"),
+                "=",
+                gen(row, side, col, "total"),
+              ]);
+            }
+            return equations;
+          });
+        } else if (row === "ra") {
+          sides = ["resource"];
+          cols = [["homes", "st", "rm", "total"]];
+          // adding generators of equations based on row calculations
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (col === "homes" || col === "st") {
+              equations.push([
+                gen(row, side, col, "homes"),
+                "=",
+                gen(row, side, col, "st"),
+              ]);
+            }
+            if (col === "st" || col === "rm" || col === "total") {
+              equations.push([
+                gen(row, side, col, "st"),
+                "+",
+                gen(row, side, col, "rm"),
+                "=",
+                gen(row, side, col, "total"),
+              ]);
+            }
+            return equations;
+          });
+        } else if (row === "tax") {
+          sides = ["resource"];
+          cols = [["gov", "st", "total"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (col === "gov" || col === "st") {
+              equations.push([
+                gen(row, side, col, "gov"),
+                "=",
+                gen(row, side, col, "st"),
+              ]);
+            }
+            if (col === "st" || col === "total") {
+              equations.push([
+                gen(row, side, col, "st"),
+                "=",
+                gen(row, side, col, "total"),
+              ]);
+            }
+            return equations;
+          });
+        } else if (row === "rp") {
+          sides = ["resource", "usage"];
+          cols = [
+            ["homes", "st", "rm", "total"],
+            ["society", "gov", "st", "rm", "total"],
+          ];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (side === "resource") {
+              if (col === "homes" || col === "st") {
+                equations.push([
+                  gen(row, side, col, "homes"),
+                  "=",
+                  gen(row, side, col, "st"),
+                ]);
+              } else if (col === "st" || col === "rm" || col === "total") {
+                equations.push([
+                  gen(row, side, col, "st"),
+                  "+",
+                  gen(row, side, col, "rm"),
+                  "=",
+                  gen(row, side, col, "total"),
+                ]);
+              }
+            } else if (side === "usage") {
+              if (col === "society" || col === "gov" || col === "st") {
+                equations.push([
+                  gen(row, side, col, "society"),
+                  "+",
+                  gen(row, side, col, "gov"),
+                  "=",
+                  gen(row, side, col, "st"),
+                ]);
+              }
+              if (col === "st" || col === "rm" || col === "total") {
+                equations.push([
+                  gen(row, side, col, "st"),
+                  "+",
+                  gen(row, side, col, "rm"),
+                  "=",
+                  gen(row, side, col, "total"),
+                ]);
+              }
+            }
+            return equations;
+          });
+        } else if (row === "cs") {
+          sides = ["resource", "usage"];
+          cols = [
+            ["gov", "st", "total"],
+            ["homes", "st", "total"],
+          ];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (side === "resource") {
+              if (col === "gov" || col === "st") {
+                equations.push([
+                  gen(row, side, col, "gov"),
+                  "=",
+                  gen(row, side, col, "st"),
+                ]);
+              }
+              if (col === "st" || col === "total") {
+                equations.push([
+                  gen(row, side, col, "st"),
+                  "=",
+                  gen(row, side, col, "total"),
+                ]);
+              }
+            } else if (side === "usage") {
+              if (col === "homes" || col === "st") {
+                equations.push([
+                  gen(row, side, col, "homes"),
+                  "=",
+                  gen(row, side, col, "st"),
+                ]);
+              }
+              if (col === "st" || col === "total") {
+                equations.push([
+                  gen(row, side, col, "st"),
+                  "=",
+                  gen(row, side, col, "total"),
+                ]);
+              }
+            }
+            return equations;
+          });
+        } else if (row === "ps") {
+          sides = ["resource", "usage"];
+          cols = [
+            ["homes", "st", "total"],
+            ["gov", "st", "total"],
+          ];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (side === "resource") {
+              if (col === "homes" || col === "st") {
+                equations.push([
+                  gen(row, side, col, "homes"),
+                  "=",
+                  gen(row, side, col, "st"),
+                ]);
+              }
+              if (col === "st" || col === "total") {
+                equations.push([
+                  gen(row, side, col, "st"),
+                  "=",
+                  gen(row, side, col, "total"),
+                ]);
+              }
+            } else if (side === "usage") {
+              if (col === "gov" || col === "st") {
+                equations.push([
+                  gen(row, side, col, "gov"),
+                  "=",
+                  gen(row, side, col, "st"),
+                ]);
+              }
+              if (col === "st" || col === "total") {
+                equations.push([
+                  gen(row, side, col, "st"),
+                  "=",
+                  gen(row, side, col, "total"),
+                ]);
+              }
+            }
+            return equations;
+          });
+        } else if (row === "otc") {
+          sides = ["resource", "usage"];
+          cols = [
+            ["gov", "st", "total"],
+            ["society", "st", "rm", "total"],
+          ];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (side === "resource") {
+              if (col === "gov" || col === "st") {
+                equations.push([
+                  gen(row, side, col, "gov"),
+                  "=",
+                  gen(row, side, col, "st"),
+                ]);
+              }
+              if (col === "st" || col === "total") {
+                equations.push([
+                  gen(row, side, col, "st"),
+                  "=",
+                  gen(row, side, col, "total"),
+                ]);
+              }
+            } else if (side === "usage") {
+              if (col === "society" || col === "st") {
+                equations.push([
+                  gen(row, side, col, "society"),
+                  "=",
+                  gen(row, side, col, "st"),
+                ]);
+              }
+              if (col === "st" || col === "rm" || col === "total") {
+                equations.push([
+                  gen(row, side, col, "st"),
+                  "+",
+                  gen(row, side, col, "rm"),
+                  "=",
+                  gen(row, side, col, "total"),
+                ]);
+              }
+            }
+            return equations;
+          });
+        } else if (row === "idb") {
+          sides = ["usage"];
+          cols = [["society", "gov", "homes", "st", "total"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (
+              col === "society" ||
+              col === "gov" ||
+              col === "homes" ||
+              col === "st"
+            ) {
+              equations.push([
+                gen(row, side, col, "society"),
+                "+",
+                gen(row, side, col, "gov"),
+                "+",
+                gen(row, side, col, "homes"),
+                "=",
+                gen(row, side, col, "st"),
+              ]);
+            }
+            if (col === "st" || col === "total") {
+              equations.push([
+                gen(row, side, col, "st"),
+                "=",
+                gen(row, side, col, "total"),
+              ]);
+            }
+            return equations;
+          });
+        } else if (row === "scx") {
+          sides = ["usage"];
+          cols = [["rm", "total"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (col === "rm" || col === "total") {
+              equations.push([
+                gen(row, side, col, "rm"),
+                "=",
+                gen(row, side, col, "total"),
+              ]);
+            }
+            return equations;
+          });
+        }
+        let iSides = 0;
+        while (iSides < sides?.length && !hasComputed) {
+          const side = sides[iSides];
+          let iCols = 0;
+          while (iCols < cols[iSides].length && !hasComputed) {
+            const col = cols[iSides][iCols];
+            let iEquationsGenerators = 0;
+            while (
+              iEquationsGenerators < equationsGenerators.length &&
+              !hasComputed
+            ) {
+              const equations = equationsGenerators[iEquationsGenerators](
+                row,
+                side,
+                col
+              );
+              let iEquations = 0;
+              while (iEquations < equations.length && !hasComputed) {
+                const equation = equations[iEquations];
+                if (isEquationSolvable(equation, CuADIByInstitutionalSectors)) {
+                  console.log(`Solving ${equation.join(" ")}`);
+                  const { leftSide, rightSide } = buildEquationSides(
+                    equation,
+                    CuADIByInstitutionalSectors
+                  );
+                  hasComputed = shouldCompute(
+                    CuADIByInstitutionalSectors,
+                    solveEquation(leftSide, rightSide),
+                    `${row}.${side}.${col}`
+                  );
+                } else {
+                  console.log(`Equation ${equation.join(" ")} is not solvable`);
+                }
+                iEquations++;
+              }
+              iEquationsGenerators++;
+            }
+            iCols++;
           }
-          iCols++;
+          iSides++;
         }
         iRows++;
       }
