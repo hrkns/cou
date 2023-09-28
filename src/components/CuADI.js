@@ -130,8 +130,13 @@ const CuADI = ({ appValues }) => {
     _.set(CuADIByInstitutionalSectors, path, value);
     savecuADIByInstitutionalSectorsValues(CuADIByInstitutionalSectors);
   };
-  const gen = (row, side, col, currentCol) => {
+  const genByCol = (row, side, col, currentCol) => {
     return col === currentCol ? "x" : `${row}.${side}.${currentCol}`;
+  };
+  const genByRow = (row, side, col, currentRow, varSide) => {
+    return row === currentRow && (!varSide || varSide === side)
+      ? "x"
+      : `${currentRow}.${side}.${col}`;
   };
 
   const computeByInstitutionalSectors = () => {
@@ -140,6 +145,154 @@ const CuADI = ({ appValues }) => {
     );
     let hasComputed = false;
     let maxAmountOfIterations = 100;
+    const scx = (row, side, col) => {
+      if (col !== "rm") return [];
+      return [
+        [
+          genByRow(row, "resource", col, "sbsx"),
+          "+",
+          genByRow(row, "resource", col, "ra"),
+          "+",
+          genByRow(row, "resource", col, "rp"),
+          "-",
+          genByRow(row, "usage", col, "rp"),
+          "-",
+          genByRow(row, "usage", col, "otc"),
+          "=",
+          genByRow(row, "usage", col, "scx"),
+        ],
+      ];
+    };
+    const idb = (row, side, col) => {
+      let allowedCols = [];
+      if (row === "sbsx") {
+        allowedCols = ["total"];
+      } else if (row === "eeb") {
+        allowedCols = ["society", "gov", "st", "total"];
+      } else if (row === "ra") {
+        allowedCols = ["homes", "st", "total"];
+      } else if (row === "tax") {
+        allowedCols = ["gov", "st", "total"];
+      } else if (row === "rp") {
+        if (side === "resource") {
+          allowedCols = ["homes", "st", "total"];
+        } else if (side === "usage") {
+          allowedCols = ["society", "gov", "st", "total"];
+        }
+      } else if (row === "cs") {
+        if (side === "resource") {
+          allowedCols = ["gov", "st", "total"];
+        } else if (side === "usage") {
+          allowedCols = ["homes", "st", "total"];
+        }
+      } else if (row === "ps") {
+        if (side === "resource") {
+          allowedCols = ["homes", "st", "total"];
+        } else if (side === "usage") {
+          allowedCols = ["gov", "st", "total"];
+        }
+      } else if (row === "otc") {
+        if (side === "resource") {
+          allowedCols = ["gov", "st", "total"];
+        } else if (side === "usage") {
+          allowedCols = ["society", "st", "total"];
+        }
+      } else if (row === "idb") {
+        allowedCols = ["society", "gov", "homes", "st", "total"];
+      } else if (row === "scx") {
+        allowedCols = ["total"];
+      }
+      if (!allowedCols.includes(col)) return [];
+      const equation = [];
+      let addPlus = false;
+
+      if (col === "total") {
+        equation.push(genByRow(row, "resource", col, "sbsx"));
+        addPlus = true;
+      }
+
+      if (
+        col === "society" ||
+        col === "gov" ||
+        col === "st" ||
+        col === "total"
+      ) {
+        if (addPlus) equation.push("+");
+        else addPlus = true;
+        equation.push(genByRow(row, "resource", col, "eeb", side));
+      }
+
+      if (col === "homes" || col === "st" || col === "total") {
+        if (addPlus) equation.push("+");
+        else addPlus = true;
+        equation.push(genByRow(row, "resource", col, "ra", side));
+      }
+
+      if (col === "gov" || col === "st" || col === "total") {
+        if (addPlus) equation.push("+");
+        else addPlus = true;
+        equation.push(genByRow(row, "resource", col, "tax", side));
+      }
+
+      if (col === "homes" || col === "st" || col === "total") {
+        if (addPlus) equation.push("+");
+        else addPlus = true;
+        equation.push(genByRow(row, "resource", col, "rp", side));
+      }
+
+      if (col === "gov" || col === "st" || col === "total") {
+        if (addPlus) equation.push("+");
+        else addPlus = true;
+        equation.push(genByRow(row, "resource", col, "cs", side));
+      }
+
+      if (col === "homes" || col === "st" || col === "total") {
+        if (addPlus) equation.push("+");
+        else addPlus = true;
+        equation.push(genByRow(row, "resource", col, "ps", side));
+      }
+
+      if (col === "gov" || col === "st" || col === "total") {
+        if (addPlus) equation.push("+");
+        else addPlus = true;
+        equation.push(genByRow(row, "resource", col, "otc", side));
+      }
+
+      if (
+        col === "society" ||
+        col === "gov" ||
+        col === "st" ||
+        col === "total"
+      ) {
+        equation.push("-");
+        equation.push(genByRow(row, "usage", col, "rp", side));
+      }
+
+      if (col === "homes" || col === "st" || col === "total") {
+        equation.push("-");
+        equation.push(genByRow(row, "usage", col, "cs", side));
+      }
+
+      if (col === "gov" || col === "st" || col === "total") {
+        equation.push("-");
+        equation.push(genByRow(row, "usage", col, "ps", side));
+      }
+
+      if (col === "society" || col === "st" || col === "total") {
+        equation.push("-");
+        equation.push(genByRow(row, "usage", col, "otc", side));
+      }
+
+      if (col === "total") {
+        equation.push("-");
+        equation.push(genByRow(row, "usage", col, "scx", side));
+      }
+
+      equation.push("=");
+      equation.push(genByRow(row, "usage", col, "idb"));
+
+      return [equation];
+    };
     do {
       hasComputed = false;
       const rows = Object.keys(emptyCuADIByInstitutionalSectors);
@@ -157,12 +310,13 @@ const CuADI = ({ appValues }) => {
             const equations = [];
             // adding generators of equations based on row calculations
             equations.push([
-              gen(row, side, col, "rm"),
+              genByCol(row, side, col, "rm"),
               "=",
-              gen(row, side, col, "total"),
+              genByCol(row, side, col, "total"),
             ]);
             return equations;
           });
+          equationsGenerators.push(scx);
         } else if (row === "eeb") {
           sides = ["resource"];
           cols = [["society", "gov", "st", "total"]];
@@ -171,18 +325,18 @@ const CuADI = ({ appValues }) => {
             // adding generators of equations based on row calculations
             if (col === "society" || col === "gov" || col === "st") {
               equations.push([
-                gen(row, side, col, "society"),
+                genByCol(row, side, col, "society"),
                 "+",
-                gen(row, side, col, "gov"),
+                genByCol(row, side, col, "gov"),
                 "=",
-                gen(row, side, col, "st"),
+                genByCol(row, side, col, "st"),
               ]);
             }
             if (col === "st" || col === "total") {
               equations.push([
-                gen(row, side, col, "st"),
+                genByCol(row, side, col, "st"),
                 "=",
-                gen(row, side, col, "total"),
+                genByCol(row, side, col, "total"),
               ]);
             }
             return equations;
@@ -195,22 +349,23 @@ const CuADI = ({ appValues }) => {
             const equations = [];
             if (col === "homes" || col === "st") {
               equations.push([
-                gen(row, side, col, "homes"),
+                genByCol(row, side, col, "homes"),
                 "=",
-                gen(row, side, col, "st"),
+                genByCol(row, side, col, "st"),
               ]);
             }
             if (col === "st" || col === "rm" || col === "total") {
               equations.push([
-                gen(row, side, col, "st"),
+                genByCol(row, side, col, "st"),
                 "+",
-                gen(row, side, col, "rm"),
+                genByCol(row, side, col, "rm"),
                 "=",
-                gen(row, side, col, "total"),
+                genByCol(row, side, col, "total"),
               ]);
             }
             return equations;
           });
+          equationsGenerators.push(scx);
         } else if (row === "tax") {
           sides = ["resource"];
           cols = [["gov", "st", "total"]];
@@ -218,16 +373,16 @@ const CuADI = ({ appValues }) => {
             const equations = [];
             if (col === "gov" || col === "st") {
               equations.push([
-                gen(row, side, col, "gov"),
+                genByCol(row, side, col, "gov"),
                 "=",
-                gen(row, side, col, "st"),
+                genByCol(row, side, col, "st"),
               ]);
             }
             if (col === "st" || col === "total") {
               equations.push([
-                gen(row, side, col, "st"),
+                genByCol(row, side, col, "st"),
                 "=",
-                gen(row, side, col, "total"),
+                genByCol(row, side, col, "total"),
               ]);
             }
             return equations;
@@ -243,41 +398,42 @@ const CuADI = ({ appValues }) => {
             if (side === "resource") {
               if (col === "homes" || col === "st") {
                 equations.push([
-                  gen(row, side, col, "homes"),
+                  genByCol(row, side, col, "homes"),
                   "=",
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                 ]);
               } else if (col === "st" || col === "rm" || col === "total") {
                 equations.push([
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                   "+",
-                  gen(row, side, col, "rm"),
+                  genByCol(row, side, col, "rm"),
                   "=",
-                  gen(row, side, col, "total"),
+                  genByCol(row, side, col, "total"),
                 ]);
               }
             } else if (side === "usage") {
               if (col === "society" || col === "gov" || col === "st") {
                 equations.push([
-                  gen(row, side, col, "society"),
+                  genByCol(row, side, col, "society"),
                   "+",
-                  gen(row, side, col, "gov"),
+                  genByCol(row, side, col, "gov"),
                   "=",
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                 ]);
               }
               if (col === "st" || col === "rm" || col === "total") {
                 equations.push([
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                   "+",
-                  gen(row, side, col, "rm"),
+                  genByCol(row, side, col, "rm"),
                   "=",
-                  gen(row, side, col, "total"),
+                  genByCol(row, side, col, "total"),
                 ]);
               }
             }
             return equations;
           });
+          equationsGenerators.push(scx);
         } else if (row === "cs") {
           sides = ["resource", "usage"];
           cols = [
@@ -289,31 +445,31 @@ const CuADI = ({ appValues }) => {
             if (side === "resource") {
               if (col === "gov" || col === "st") {
                 equations.push([
-                  gen(row, side, col, "gov"),
+                  genByCol(row, side, col, "gov"),
                   "=",
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                 ]);
               }
               if (col === "st" || col === "total") {
                 equations.push([
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                   "=",
-                  gen(row, side, col, "total"),
+                  genByCol(row, side, col, "total"),
                 ]);
               }
             } else if (side === "usage") {
               if (col === "homes" || col === "st") {
                 equations.push([
-                  gen(row, side, col, "homes"),
+                  genByCol(row, side, col, "homes"),
                   "=",
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                 ]);
               }
               if (col === "st" || col === "total") {
                 equations.push([
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                   "=",
-                  gen(row, side, col, "total"),
+                  genByCol(row, side, col, "total"),
                 ]);
               }
             }
@@ -330,31 +486,31 @@ const CuADI = ({ appValues }) => {
             if (side === "resource") {
               if (col === "homes" || col === "st") {
                 equations.push([
-                  gen(row, side, col, "homes"),
+                  genByCol(row, side, col, "homes"),
                   "=",
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                 ]);
               }
               if (col === "st" || col === "total") {
                 equations.push([
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                   "=",
-                  gen(row, side, col, "total"),
+                  genByCol(row, side, col, "total"),
                 ]);
               }
             } else if (side === "usage") {
               if (col === "gov" || col === "st") {
                 equations.push([
-                  gen(row, side, col, "gov"),
+                  genByCol(row, side, col, "gov"),
                   "=",
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                 ]);
               }
               if (col === "st" || col === "total") {
                 equations.push([
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                   "=",
-                  gen(row, side, col, "total"),
+                  genByCol(row, side, col, "total"),
                 ]);
               }
             }
@@ -371,38 +527,39 @@ const CuADI = ({ appValues }) => {
             if (side === "resource") {
               if (col === "gov" || col === "st") {
                 equations.push([
-                  gen(row, side, col, "gov"),
+                  genByCol(row, side, col, "gov"),
                   "=",
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                 ]);
               }
               if (col === "st" || col === "total") {
                 equations.push([
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                   "=",
-                  gen(row, side, col, "total"),
+                  genByCol(row, side, col, "total"),
                 ]);
               }
             } else if (side === "usage") {
               if (col === "society" || col === "st") {
                 equations.push([
-                  gen(row, side, col, "society"),
+                  genByCol(row, side, col, "society"),
                   "=",
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                 ]);
               }
               if (col === "st" || col === "rm" || col === "total") {
                 equations.push([
-                  gen(row, side, col, "st"),
+                  genByCol(row, side, col, "st"),
                   "+",
-                  gen(row, side, col, "rm"),
+                  genByCol(row, side, col, "rm"),
                   "=",
-                  gen(row, side, col, "total"),
+                  genByCol(row, side, col, "total"),
                 ]);
               }
             }
             return equations;
           });
+          equationsGenerators.push(scx);
         } else if (row === "idb") {
           sides = ["usage"];
           cols = [["society", "gov", "homes", "st", "total"]];
@@ -415,20 +572,20 @@ const CuADI = ({ appValues }) => {
               col === "st"
             ) {
               equations.push([
-                gen(row, side, col, "society"),
+                genByCol(row, side, col, "society"),
                 "+",
-                gen(row, side, col, "gov"),
+                genByCol(row, side, col, "gov"),
                 "+",
-                gen(row, side, col, "homes"),
+                genByCol(row, side, col, "homes"),
                 "=",
-                gen(row, side, col, "st"),
+                genByCol(row, side, col, "st"),
               ]);
             }
             if (col === "st" || col === "total") {
               equations.push([
-                gen(row, side, col, "st"),
+                genByCol(row, side, col, "st"),
                 "=",
-                gen(row, side, col, "total"),
+                genByCol(row, side, col, "total"),
               ]);
             }
             return equations;
@@ -440,16 +597,18 @@ const CuADI = ({ appValues }) => {
             const equations = [];
             if (col === "rm" || col === "total") {
               equations.push([
-                gen(row, side, col, "rm"),
+                genByCol(row, side, col, "rm"),
                 "=",
-                gen(row, side, col, "total"),
+                genByCol(row, side, col, "total"),
               ]);
             }
             return equations;
           });
+          equationsGenerators.push(scx);
         }
+        equationsGenerators.push(idb);
         let iSides = 0;
-        while (iSides < sides?.length && !hasComputed) {
+        while (iSides < sides.length && !hasComputed) {
           const side = sides[iSides];
           let iCols = 0;
           while (iCols < cols[iSides].length && !hasComputed) {
@@ -468,6 +627,7 @@ const CuADI = ({ appValues }) => {
               while (iEquations < equations.length && !hasComputed) {
                 const equation = equations[iEquations];
                 if (isEquationSolvable(equation, CuADIByInstitutionalSectors)) {
+                  console.log({ row, col, side });
                   console.log(`Solving ${equation.join(" ")}`);
                   const { leftSide, rightSide } = buildEquationSides(
                     equation,
@@ -685,22 +845,24 @@ const CuADI = ({ appValues }) => {
             )}
           </tr>
           <tr>
-            {cellGeneratorForByInstitutionalSectors.generate(
-              "rp.resource.total"
-            )}
-            {cellGeneratorForByInstitutionalSectors.generate("rp.resource.rm")}
-            {cellGeneratorForByInstitutionalSectors.generate("rp.resource.st")}
+            {cellGeneratorForByInstitutionalSectors.generate("rp.usage.total")}
+            {cellGeneratorForByInstitutionalSectors.generate("rp.usage.rm")}
+            {cellGeneratorForByInstitutionalSectors.generate("rp.usage.st")}
             <DisabledCell />
-            {cellGeneratorForByInstitutionalSectors.generate("rp.resource.gov")}
-            {cellGeneratorForByInstitutionalSectors.generate("rp.resource.soc")}
+            {cellGeneratorForByInstitutionalSectors.generate("rp.usage.gov")}
+            {cellGeneratorForByInstitutionalSectors.generate("rp.usage.soc")}
             <td>
               <strong>Rentas de la propiedad</strong>
             </td>
             {DisabledCells(`rp`, 7, 2)}
-            {cellGeneratorForByInstitutionalSectors.generate("rp.usage.homes")}
-            {cellGeneratorForByInstitutionalSectors.generate("rp.usage.st")}
-            {cellGeneratorForByInstitutionalSectors.generate("rp.usage.rm")}
-            {cellGeneratorForByInstitutionalSectors.generate("rp.usage.total")}
+            {cellGeneratorForByInstitutionalSectors.generate(
+              "rp.resource.homes"
+            )}
+            {cellGeneratorForByInstitutionalSectors.generate("rp.resource.st")}
+            {cellGeneratorForByInstitutionalSectors.generate("rp.resource.rm")}
+            {cellGeneratorForByInstitutionalSectors.generate(
+              "rp.resource.total"
+            )}
           </tr>
           <tr>
             {cellGeneratorForByInstitutionalSectors.generate("cs.usage.total")}
