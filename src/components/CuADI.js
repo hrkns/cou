@@ -402,7 +402,9 @@ const CuADI = ({ appValues }) => {
                   "=",
                   genByCol(row, side, col, "st"),
                 ]);
-              } else if (col === "st" || col === "rm" || col === "total") {
+              }
+
+              if (col === "st" || col === "rm" || col === "total") {
                 equations.push([
                   genByCol(row, side, col, "st"),
                   "+",
@@ -627,7 +629,6 @@ const CuADI = ({ appValues }) => {
               while (iEquations < equations.length && !hasComputed) {
                 const equation = equations[iEquations];
                 if (isEquationSolvable(equation, CuADIByInstitutionalSectors)) {
-                  console.log({ row, col, side });
                   console.log(`Solving ${equation.join(" ")}`);
                   const { leftSide, rightSide } = buildEquationSides(
                     equation,
@@ -907,7 +908,7 @@ const CuADI = ({ appValues }) => {
             {cellGeneratorForByInstitutionalSectors.generate("otc.usage.rm")}
             {cellGeneratorForByInstitutionalSectors.generate("otc.usage.st")}
             {DisabledCells(`otc`, 3, 2)}
-            <td></td>
+            {cellGeneratorForByInstitutionalSectors.generate("otc.usage.society")}
             <td>
               <strong>Otras transferencias corrientes</strong>
             </td>
