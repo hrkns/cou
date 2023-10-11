@@ -138,7 +138,6 @@ const CuADI = ({ appValues }) => {
       ? "x"
       : `${currentRow}.${side}.${col}`;
   };
-
   const computeByInstitutionalSectors = () => {
     console.log(
       "Calculando valores de Cuenta de Asignación y Distribución de Ingresos por Sectores Institucionales"
@@ -908,7 +907,9 @@ const CuADI = ({ appValues }) => {
             {cellGeneratorForByInstitutionalSectors.generate("otc.usage.rm")}
             {cellGeneratorForByInstitutionalSectors.generate("otc.usage.st")}
             {DisabledCells(`otc`, 3, 2)}
-            {cellGeneratorForByInstitutionalSectors.generate("otc.usage.society")}
+            {cellGeneratorForByInstitutionalSectors.generate(
+              "otc.usage.society"
+            )}
             <td>
               <strong>Otras transferencias corrientes</strong>
             </td>
