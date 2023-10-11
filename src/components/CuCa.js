@@ -36,12 +36,17 @@ const CuCa = ({ appValues }) => {
     tkr: {
       resource: {
         society: null,
+        gov: null,
         st: null,
+        rm: null,
         total: null,
       },
     },
     tke: {
       resource: {
+        society: null,
+        gov: null,
+        st: null,
         rm: null,
         total: null,
       },
@@ -93,6 +98,58 @@ const CuCa = ({ appValues }) => {
     console.log(
       "Calculando valores de Cuenta de Asignación y Distribución de Ingresos por Sectores Institucionales"
     );
+    const pn = (row, side, col) => {
+      const equation = [];
+      let appendOperator = false;
+
+      if (col === "rm" || col === "total") {
+        equation.push(genByRow(row, "resource", col, "scx", side));
+        appendOperator = true;
+      }
+
+      if (col !== "rm") {
+        if (appendOperator) {
+          equation.push("+");
+        }
+        equation.push(genByRow(row, "resource", col, "ab", side));
+        appendOperator = true;
+      }
+
+      if (col !== "homes") {
+        if (appendOperator) {
+          equation.push("+");
+        }
+        equation.push(genByRow(row, "resource", col, "tkr", side));
+        appendOperator = true;
+      }
+
+      if (col !== "homes") {
+        if (appendOperator) {
+          equation.push("+");
+        }
+        equation.push(genByRow(row, "resource", col, "tke", side));
+        appendOperator = true;
+      }
+
+      if (
+        col === "total" ||
+        col === "st" ||
+        col === "gov" ||
+        col === "society"
+      ) {
+        if (appendOperator) {
+          equation.push("-");
+        }
+        equation.push(genByRow(row, "usage", col, "fbkf", side));
+        equation.push("-");
+        equation.push(genByRow(row, "usage", col, "ve", side));
+      }
+
+      equation.push("=");
+      equation.push(genByRow(row, "usage", col, "pn", side));
+
+      return [equation];
+    };
     let hasComputed = false;
     let maxAmountOfIterations = 100;
     do {
@@ -105,6 +162,120 @@ const CuCa = ({ appValues }) => {
         let cols;
         const equationsGenerators = [];
         // TODO: customize this segment when copying file content to another (build assignation of equations generators according to current row)
+        if (row === "scx") {
+          sides = ["resource"];
+          cols = [["rm"], ["total"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            equations.push([
+              genByCol(row, side, col, "rm"),
+              "=",
+              genByCol(row, side, col, "ab"),
+            ]);
+            return equations;
+          });
+        } else if (row === "ab") {
+          sides = ["resource"];
+          cols = [["society", "gov", "homes", "st", "total"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (["society", "gov", "homes", "st"].includes(col)) {
+              equations.push([
+                genByCol(row, side, col, "society"),
+                "+",
+                genByCol(row, side, col, "gov"),
+                "+",
+                genByCol(row, side, col, "homes"),
+                "=",
+                genByCol(row, side, col, "st"),
+              ]);
+            }
+            if (["st", "total"].includes(col)) {
+              equations.push([
+                genByCol(row, side, col, "st"),
+                "=",
+                genByCol(row, side, col, "total"),
+              ]);
+            }
+            return equations;
+          });
+        } else if (row === "tkr" || row === "tke") {
+          sides = ["resource"];
+          cols = [["society", "gov", "st", "rm", "total"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (["society", "gov", "st"].includes(col)) {
+              equations.push([
+                genByCol(row, side, col, "society"),
+                "+",
+                genByCol(row, side, col, "gov"),
+                "=",
+                genByCol(row, side, col, "st"),
+              ]);
+            }
+            if (["st", "rm", "total"].includes(col)) {
+              equations.push([
+                genByCol(row, side, col, "st"),
+                "+",
+                genByCol(row, side, col, "rm"),
+                "=",
+                genByCol(row, side, col, "total"),
+              ]);
+            }
+            return equations;
+          });
+        } else if (row === "fbkf" || row === "ve") {
+          sides = ["usage"];
+          cols = [["total", "st", "gov", "society"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (["st", "gov", "society"].includes(col)) {
+              equations.push([
+                genByCol(row, side, col, "st"),
+                "=",
+                genByCol(row, side, col, "gov"),
+                "+",
+                genByCol(row, side, col, "society"),
+              ]);
+            }
+            if (["total", "st"].includes(col)) {
+              equations.push([
+                genByCol(row, side, col, "total"),
+                "=",
+                genByCol(row, side, col, "st"),
+              ]);
+            }
+            return equations;
+          });
+        } else if (row === "pn") {
+          sides = ["usage"];
+          cols = [["total", "rm", "st", "homes", "gov", "society"]];
+          equationsGenerators.push((row, side, col) => {
+            const equations = [];
+            if (["st", "homes", "gov", "society"].includes(col)) {
+              equations.push([
+                genByCol(row, side, col, "st"),
+                "=",
+                genByCol(row, side, col, "homes"),
+                "+",
+                genByCol(row, side, col, "gov"),
+                "+",
+                genByCol(row, side, col, "society"),
+              ]);
+            }
+            if (["total", "rm", "st"].includes(col)) {
+              equations.push([
+                genByCol(row, side, col, "total"),
+                "=",
+                genByCol(row, side, col, "rm"),
+                "+",
+                genByCol(row, side, col, "st"),
+              ]);
+            }
+            return equations;
+          });
+        }
+        equationsGenerators.push(pn);
         let iSides = 0;
         while (iSides < sides.length && !hasComputed) {
           const side = sides[iSides];
@@ -270,9 +441,12 @@ const CuCa = ({ appValues }) => {
             {cellGeneratorForByInstitutionalSectors.generate(
               "tkr.resource.society"
             )}
-            {DisabledCells("tkr", 8, 2)}
+            {cellGeneratorForByInstitutionalSectors.generate(
+              "tkr.resource.gov"
+            )}
+            {DisabledCells("tkr", 8, 1)}
             {cellGeneratorForByInstitutionalSectors.generate("tkr.resource.st")}
-            <DisabledCell />
+            {cellGeneratorForByInstitutionalSectors.generate("tkr.resource.rm")}
             {cellGeneratorForByInstitutionalSectors.generate(
               "tkr.resource.total"
             )}
@@ -282,7 +456,14 @@ const CuCa = ({ appValues }) => {
             <td>
               <strong>Transferencias de capital efectuadas</strong>
             </td>
-            {DisabledCells("tke", 7, 4)}
+            {cellGeneratorForByInstitutionalSectors.generate(
+              "tke.resource.society"
+            )}
+            {cellGeneratorForByInstitutionalSectors.generate(
+              "tke.resource.gov"
+            )}
+            <DisabledCell />
+            {cellGeneratorForByInstitutionalSectors.generate("tke.resource.st")}
             {cellGeneratorForByInstitutionalSectors.generate("tke.resource.rm")}
             {cellGeneratorForByInstitutionalSectors.generate(
               "tke.resource.total"
