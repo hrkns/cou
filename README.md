@@ -17,6 +17,9 @@
 - **Income Usage Account (By Institutional Sectors) / Cuenta de Utilización del Ingreso (Por Sectores Institucionales).**
   ![Income Usage Account (By Institutional Sectors) / Cuenta de Utilización del Ingreso (Por Sectores Institucionales).](docs/img/CUI.png)
 
+- **Capital Account (By Institutional Sectors) / Cuenta Capital (Por Sectores Institucionales)**
+  ![Capital Account (By Institutional Sectors) / Cuenta Capital (Por Sectores Institucionales)](docs/img/CuCa.png)
+
 ## Other docs:
 
 - [React](docs/react.md)

@@ -211,7 +211,7 @@ const CUI = ({ appValues }) => {
           equationsGenerators.push(idb);
         }
         let iSides = 0;
-        while (iSides < sides?.length && !hasComputed) {
+        while (iSides < sides.length && !hasComputed) {
           const side = sides[iSides];
           let iCols = 0;
           while (iCols < cols[iSides].length && !hasComputed) {
