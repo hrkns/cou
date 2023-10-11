@@ -11,6 +11,8 @@ import solveEquation from "../shared/solveEquation";
 import shouldCompute from "../shared/shouldCompute";
 import TableInputGenerator from "./TableInputGenerator";
 import CrudModals from "./CrudModals";
+import genByCol from "../shared/genByCol";
+import genByRow from "../shared/genByRow";
 
 const CuADI = ({ appValues }) => {
   const branchesIndexes = _.range(1, appValues.branches.length + 1);
@@ -129,14 +131,6 @@ const CuADI = ({ appValues }) => {
   const handlecuADIByInstitutionalSectorsValueChange = (value, path) => {
     _.set(CuADIByInstitutionalSectors, path, value);
     savecuADIByInstitutionalSectorsValues(CuADIByInstitutionalSectors);
-  };
-  const genByCol = (row, side, col, currentCol) => {
-    return col === currentCol ? "x" : `${row}.${side}.${currentCol}`;
-  };
-  const genByRow = (row, side, col, currentRow, varSide) => {
-    return row === currentRow && (!varSide || varSide === side)
-      ? "x"
-      : `${currentRow}.${side}.${col}`;
   };
   const computeByInstitutionalSectors = () => {
     console.log(
