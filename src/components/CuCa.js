@@ -8,7 +8,6 @@ import isEquationSolvable from "../shared/isEquationSolvable";
 import buildEquationSides from "../shared/buildEquationSides";
 import shouldCompute from "../shared/shouldCompute";
 import solveEquation from "../shared/solveEquation";
-import hasContent from "../shared/hasContent";
 import TableInputGenerator from "./TableInputGenerator";
 import CrudModals from "./CrudModals";
 import genByCol from "../shared/genByCol";
@@ -96,7 +95,7 @@ const CuCa = ({ appValues }) => {
   };
   const computeByInstitutionalSectors = () => {
     console.log(
-      "Calculando valores de Cuenta de Asignación y Distribución de Ingresos por Sectores Institucionales"
+      "Calculando valores de Cuenta Capital por Sectores Institucionales"
     );
     const pn = (row, side, col) => {
       const equation = [];

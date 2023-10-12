@@ -158,21 +158,19 @@ const App = () => {
           </Accordion.Body>
         </Accordion.Item>
         {/* Cuenta Financiera */}
-        {false && (
-          <Accordion.Item
-            eventKey="6"
-            style={{
-              overflowX: "auto",
-            }}
-          >
-            <Accordion.Header>
-              <h1>Cuenta Financiera</h1>
-            </Accordion.Header>
-            <Accordion.Body>
-              <CuFi appValues={appValues} setAppValues={setAppValues} />
-            </Accordion.Body>
-          </Accordion.Item>
-        )}
+        <Accordion.Item
+          eventKey="6"
+          style={{
+            overflowX: "auto",
+          }}
+        >
+          <Accordion.Header>
+            <h1>Cuenta Financiera</h1>
+          </Accordion.Header>
+          <Accordion.Body>
+            <CuFi appValues={appValues} setAppValues={setAppValues} />
+          </Accordion.Body>
+        </Accordion.Item>
       </Accordion>
 
       {/* Pie de página */}
