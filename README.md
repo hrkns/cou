@@ -20,6 +20,9 @@
 - **Capital Account (By Institutional Sectors) / Cuenta Capital (Por Sectores Institucionales)**
   ![Capital Account (By Institutional Sectors) / Cuenta Capital (Por Sectores Institucionales)](docs/img/CuCa.png)
 
+- **Financial Account (By Institutional Sectors) / Cuenta Financiera (Por Sectores Institucionales)**
+  ![Financial Account (By Institutional Sectors) / Cuenta Financiera (Por Sectores Institucionales)](docs/img/CuFi.png)
+
 ## Other docs:
 
 - [React](docs/react.md)
