@@ -73,7 +73,7 @@ const CUI = ({ appValues }) => {
   };
   const computeByInstitutionalSectors = () => {
     console.log(
-      "Calculando valores de Cuenta de Asignación y Distribución de Ingresos por Sectores Institucionales"
+      "Calculando valores de Cuenta de Utilización del Ingreso por Sectores Institucionales"
     );
     const idb = (row, side, col) => {
       const equation = [];
