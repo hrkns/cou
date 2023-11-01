@@ -1,7 +1,7 @@
 const Footer = () => {
   return (
     <footer className="custom-footer">
-      <span>Versión: 0.2.0</span>
+      <span>Versión: 0.2.2</span>
       &nbsp;
       <span>|</span>
       &nbsp;
